@@ -660,7 +660,8 @@ export default function App() {
       answer_image_url: t.answer_image_url || "",
     });
     const dbTasks = (customTasks || []).filter(t => (t.kit || "berrybot") === k);
-    if (k !== "berrybot") return dbTasks.map(fromDb).sort((a, b) => a.id - b.id);
+    // DEMO MODE: BerryBot da sadece DB'den okur (TASKS array bypass)
+    if (DEMO_MODE || k !== "berrybot") return dbTasks.map(fromDb).sort((a, b) => a.id - b.id);
     // BerryBot: TASKS base, DB overrides + extras above 36
     const dbMap = new Map(dbTasks.map(t => [t.task_id, t]));
     const merged = [];
@@ -1461,7 +1462,8 @@ function MissionBoard({user,prog,onSel,onHelp,customTasks,activeKit}){
 
     const dbTasks = (customTasks || []).filter(t => (t.kit || "berrybot") === userKit);
 
-    if (userKit !== "berrybot") {
+    // DEMO MODE: BerryBot bile sadece DB'den okur (hardcoded 36 TASKS bypass)
+    if (DEMO_MODE || userKit !== "berrybot") {
       return dbTasks.map(fromDb).sort((a, b) => a.id - b.id);
     }
 
@@ -5976,8 +5978,9 @@ function AdminTaskEditor({ customTasks, onSave, onDelete, onUpload, onRefresh, c
       .filter(t => (t.kit || "berrybot") === selKit)
       .sort((a, b) => a.task_id - b.task_id);
 
+    // DEMO MODE: BerryBot da sadece DB'den okur (36 hardcoded TASKS bypass)
     // For non-berrybot kits, show only DB-saved tasks (clean slate)
-    if (selKit !== "berrybot") {
+    if (DEMO_MODE || selKit !== "berrybot") {
       return dbTasks;
     }
 
