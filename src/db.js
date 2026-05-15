@@ -35,10 +35,17 @@ export async function createUser(userData) {
   }).select().single();
   if (error) { console.error('createUser:', error); return null; }
   if (userData.role === 'student') {
-    // Only seed initial 36 progress rows for BerryBot — others start with no tasks
-    if (kit === 'berrybot') {
-      const rows = [];
-      for (let i = 1; i <= 36; i++) rows.push({ student_id: id, task_id: i, status: i === 1 ? 'active' : 'locked', kit });
+    // Seed progress rows from the ACTUAL tasks in this kit (DB-driven, not hardcoded)
+    const { data: kitTasks } = await supabase.from('bb_tasks')
+      .select('task_id').eq('kit', kit).eq('active', true)
+      .order('task_id', { ascending: true });
+    const taskIds = (kitTasks || []).map(t => t.task_id);
+    if (taskIds.length > 0) {
+      const rows = taskIds.map((tid, idx) => ({
+        student_id: id, task_id: tid,
+        status: idx === 0 ? 'active' : 'locked',
+        kit,
+      }));
       await supabase.from('bb_progress').insert(rows);
     }
     await supabase.from('bb_student_meta').insert({ student_id: id, online: false, last_seen: 0 });
@@ -147,18 +154,12 @@ export async function approveTask(instructorId, studentId, taskId, note) {
     .select('kit').eq('id', studentId).maybeSingle();
   const kit = studentRow?.kit || 'berrybot';
 
-  // Find the next task_id for this kit (next higher than current, in active tasks)
+  // Find the next task_id for this kit (next higher than current, in active tasks) — DB-driven
   let nextId = null;
-  if (kit === 'berrybot') {
-    // Hardcoded 36-task curriculum
-    if (taskId + 1 <= 36) nextId = taskId + 1;
-  } else {
-    // Tank/PicoBricks: look up next task_id from bb_tasks
-    const { data: nextTask } = await supabase.from('bb_tasks')
-      .select('task_id').eq('kit', kit).eq('active', true)
-      .gt('task_id', taskId).order('task_id').limit(1).maybeSingle();
-    if (nextTask) nextId = nextTask.task_id;
-  }
+  const { data: nextTask } = await supabase.from('bb_tasks')
+    .select('task_id').eq('kit', kit).eq('active', true)
+    .gt('task_id', taskId).order('task_id').limit(1).maybeSingle();
+  if (nextTask) nextId = nextTask.task_id;
 
   if (nextId !== null) {
     // First try update (task row should exist from seed)
@@ -579,28 +580,18 @@ export async function setUserKit(userId, kit) {
   await supabase.from('bb_users').update({ kit }).eq('id', userId);
   addLog({ type: 'kit_changed', userId, detail: `Kit: ${kit}` });
 
-  // Reset progress: delete old + seed new based on new kit's tasks
+  // Reset progress: delete old + seed new based on new kit's tasks (DB-driven for ALL kits)
   await supabase.from('bb_progress').delete().eq('student_id', userId);
 
-  if (kit === 'berrybot') {
-    // BerryBot: seed all 36 hardcoded tasks (1=active, 2-36=locked)
-    const rows = [];
-    for (let i = 1; i <= 36; i++) {
-      rows.push({ student_id: userId, task_id: i, status: i === 1 ? 'active' : 'locked', kit });
-    }
+  const { data: kitTasks } = await supabase.from('bb_tasks')
+    .select('task_id').eq('kit', kit).eq('active', true).order('task_id');
+  if (kitTasks && kitTasks.length > 0) {
+    const rows = kitTasks.map((t, i) => ({
+      student_id: userId, task_id: t.task_id, status: i === 0 ? 'active' : 'locked', kit,
+    }));
     await supabase.from('bb_progress').insert(rows);
-  } else {
-    // Tank/PicoBricks: seed from existing bb_tasks for this kit
-    const { data: kitTasks } = await supabase.from('bb_tasks')
-      .select('task_id').eq('kit', kit).eq('active', true).order('task_id');
-    if (kitTasks && kitTasks.length > 0) {
-      const rows = kitTasks.map((t, i) => ({
-        student_id: userId, task_id: t.task_id, status: i === 0 ? 'active' : 'locked', kit,
-      }));
-      await supabase.from('bb_progress').insert(rows);
-    }
-    // No tasks yet → empty, MissionBoard shows "Henüz görev yok"
   }
+  // No tasks yet → empty, MissionBoard shows "Henüz görev yok"
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -814,19 +805,8 @@ export async function upsertTask(t) {
           .map(x => Number(x.task_id))   // supports decimals like 2.5
           .filter(n => !isNaN(n));
 
-        // For BerryBot, also include the 36 hardcoded task IDs as base
-        let allIds;
-        if (t.kit === 'berrybot') {
-          // Hardcoded 1..36 + DB additions (override duplicates by using Set)
-          const idSet = new Set();
-          for (let i = 1; i <= 36; i++) idSet.add(i);
-          dbIds.forEach(id => idSet.add(id));
-          allIds = Array.from(idSet);
-        } else {
-          allIds = dbIds;
-        }
-
-        const taskIds = allIds.sort((a, b) => a - b);  // ascending
+        // All task IDs are DB-driven (no hardcoded 36 for BerryBot anymore)
+        const taskIds = dbIds.sort((a, b) => a - b);  // ascending
         console.log('💾 Auto-seed task_ids (sorted):', taskIds);
 
         const PRESERVE = new Set(['approved', 'in_progress', 'pending_review', 'rejected']);
