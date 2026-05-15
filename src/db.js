@@ -334,34 +334,51 @@ export async function saveAllLayouts(layouts) {
 }
 
 // ═══ ADMIN: SET STUDENT PROGRESS ═══
-// Sets tasks 1..(fromTask-1) as approved, fromTask as active, rest as locked
+// Sets tasks before fromTask as approved, fromTask as active, rest as locked
 export async function setStudentProgressTo(studentId, fromTask) {
   const now = Date.now();
   const ts = new Date().toISOString();
   
-  // 1. Set all tasks before fromTask as approved
-  if (fromTask > 1) {
+  // Öğrencinin kit'ini ve gerçek görev ID'lerini bul
+  const { data: studentRow } = await supabase.from('bb_users')
+    .select('kit').eq('id', studentId).maybeSingle();
+  const kit = studentRow?.kit || 'berrybot';
+  const { data: kitTasks } = await supabase.from('bb_tasks')
+    .select('task_id').eq('kit', kit).eq('active', true).order('task_id');
+  const taskIds = (kitTasks || []).map(t => t.task_id);
+  
+  if (taskIds.length === 0) {
+    console.warn('setStudentProgressTo: kit için görev yok');
+    return;
+  }
+
+  // Önce/sonra ID'leri ayır
+  const beforeIds = taskIds.filter(id => id < fromTask);
+  const afterIds = taskIds.filter(id => id > fromTask);
+
+  // 1. Önceki görevleri approved yap
+  if (beforeIds.length > 0) {
     await supabase.from('bb_progress')
       .update({ status: 'approved', started_at: now - 300000, completed_at: now - 60000, approved_at: now, updated_at: ts })
       .eq('student_id', studentId)
-      .gte('task_id', 1).lte('task_id', fromTask - 1);
+      .in('task_id', beforeIds);
   }
   
-  // 2. Set fromTask as active
+  // 2. fromTask'ı active yap
   await supabase.from('bb_progress')
     .update({ status: 'active', started_at: null, completed_at: null, approved_at: null, instructor_note: null, photo: null, updated_at: ts })
     .eq('student_id', studentId).eq('task_id', fromTask);
   
-  // 3. Set all tasks after fromTask as locked
-  if (fromTask < 36) {
+  // 3. Sonrakileri locked yap
+  if (afterIds.length > 0) {
     await supabase.from('bb_progress')
       .update({ status: 'locked', started_at: null, completed_at: null, approved_at: null, instructor_note: null, photo: null, updated_at: ts })
       .eq('student_id', studentId)
-      .gte('task_id', fromTask + 1).lte('task_id', 36);
+      .in('task_id', afterIds);
   }
   
-  addLog({ type: 'admin_set_progress', userId: studentId, taskId: fromTask, detail: `Admin: Görev ${fromTask}'den devam ayarlandı (${fromTask-1} görev onaylandı)` });
-  console.log('🔧 setStudentProgressTo:', studentId, 'from task', fromTask);
+  addLog({ type: 'admin_set_progress', userId: studentId, taskId: fromTask, detail: `Admin: Görev ${fromTask}'den devam ayarlandı (${beforeIds.length} görev onaylandı)` });
+  console.log('🔧 setStudentProgressTo:', studentId, 'from task', fromTask, 'kit', kit);
 }
 
 // ═══ REALTIME ═══
