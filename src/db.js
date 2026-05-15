@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = "https://asoahxgzosbtwvdifmrq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_oEn7NWdc-Qdbd6vEoQ6Xwg_-bqznLbU"
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // ═══ USERS ═══
 export async function loginUser(email, password) {
   const { data, error } = await supabase.from('bb_users').select('*').eq('email', email).eq('password', password).single();
@@ -147,7 +146,27 @@ export async function submitTask(studentId, taskId, hasPhoto) {
 }
 
 export async function approveTask(instructorId, studentId, taskId, note) {
-  await updateStatus(studentId, taskId, { status: 'approved', approved_at: Date.now(), instructor_note: note || 'Onaylandı ✓' });
+  // Önce mevcut foto URL'sini al (Storage'dan silmek için)
+  const { data: prog } = await supabase.from('bb_progress')
+    .select('photo').eq('student_id', studentId).eq('task_id', taskId).maybeSingle();
+  
+  await updateStatus(studentId, taskId, { 
+    status: 'approved', 
+    approved_at: Date.now(), 
+    instructor_note: note || 'Onaylandı ✓',
+    photo: null,  // ★ Onay sonrası foto sil
+  });
+
+  // Storage'dan dosyayı sil (varsa)
+  if (prog?.photo) {
+    try {
+      const url = new URL(prog.photo);
+      const pathMatch = url.pathname.match(/\/task-media\/(.+)$/);
+      if (pathMatch) {
+        await supabase.storage.from('task-media').remove([pathMatch[1]]);
+      }
+    } catch (e) { console.warn('foto silme hatası:', e); }
+  }
 
   // Determine the student's kit
   const { data: studentRow } = await supabase.from('bb_users')
@@ -179,7 +198,27 @@ export async function approveTask(instructorId, studentId, taskId, note) {
 }
 
 export async function rejectTask(instructorId, studentId, taskId, note) {
-  await updateStatus(studentId, taskId, { status: 'rejected', instructor_note: note || 'Tekrar dene' });
+  // Önce mevcut foto URL'sini al
+  const { data: prog } = await supabase.from('bb_progress')
+    .select('photo').eq('student_id', studentId).eq('task_id', taskId).maybeSingle();
+
+  await updateStatus(studentId, taskId, { 
+    status: 'rejected', 
+    instructor_note: note || 'Tekrar dene',
+    photo: null,  // ★ Red sonrası da foto sil
+  });
+
+  // Storage'dan sil
+  if (prog?.photo) {
+    try {
+      const url = new URL(prog.photo);
+      const pathMatch = url.pathname.match(/\/task-media\/(.+)$/);
+      if (pathMatch) {
+        await supabase.storage.from('task-media').remove([pathMatch[1]]);
+      }
+    } catch (e) { console.warn('foto silme hatası:', e); }
+  }
+
   addLog({ type: 'task_rejected', userId: instructorId, targetUser: studentId, taskId, detail: note || 'Reddedildi' });
 }
 
@@ -235,20 +274,41 @@ export async function getLogs(limit = 100) {
 
 // ═══ LAYOUTS ═══
 export async function getClassLayouts() {
-  const { data } = await supabase.from('bb_class_layouts').select('*');
-  return (data || []).map(c => ({
-    id: c.id, name: c.name, instructorId: c.instructor_id, canvasH: c.canvas_h || 700,
-    ...(typeof c.layout_json === 'string' ? JSON.parse(c.layout_json) : c.layout_json),
-  }));
+  const { data, error } = await supabase.from('bb_class_layouts').select('*');
+  if (error) { console.error('getClassLayouts:', error); return []; }
+  return (data || []).map(c => {
+    // Yeni şema: { id, data: JSONB, updated_at }
+    if (c.data !== undefined) {
+      const inner = typeof c.data === 'string' ? JSON.parse(c.data) : c.data;
+      return { id: c.id, ...inner };
+    }
+    // Eski şema (production): { id, name, instructor_id, canvas_h, layout_json, ... }
+    return {
+      id: c.id, name: c.name, instructorId: c.instructor_id, canvasH: c.canvas_h || 700,
+      ...(typeof c.layout_json === 'string' ? JSON.parse(c.layout_json) : (c.layout_json || {})),
+    };
+  });
 }
 
 export async function saveClassLayout(classId, layoutData) {
+  // Önce yeni şema ile dene (data JSONB)
+  const payload = {
+    id: classId,
+    data: layoutData,
+    updated_at: Date.now(),
+  };
+  const { error } = await supabase.from('bb_class_layouts').upsert(payload, { onConflict: 'id' });
+  if (!error) return;
+
+  // Yeni şema yoksa eski şemaya düş (production)
+  console.warn('Yeni şema başarısız, eski şemaya geçiliyor:', error.message);
   const { tables, objects, canvasH, ...rest } = layoutData;
-  await supabase.from('bb_class_layouts').upsert({
+  const { error: err2 } = await supabase.from('bb_class_layouts').upsert({
     id: classId, name: rest.name || classId, instructor_id: rest.instructorId || null,
     canvas_h: canvasH || 700, layout_json: JSON.stringify({ tables: tables || [], objects: objects || [] }),
     updated_at: new Date().toISOString(),
   }, { onConflict: 'id' });
+  if (err2) console.error('saveClassLayout (eski şema da başarısız):', err2);
 }
 
 export async function saveAllLayouts(layouts) {
@@ -556,12 +616,15 @@ export async function unlockAnswer({ studentId, taskId, instructorId }) {
   const { data: existing } = await supabase.from('bb_answer_unlock')
     .select('id').eq('student_id', studentId).eq('task_id', taskId).maybeSingle();
   if (existing) return; // already unlocked
-  await supabase.from('bb_answer_unlock').insert({
+  const { error } = await supabase.from('bb_answer_unlock').insert({
     student_id: studentId,
     task_id: taskId,
-    unlocked_by: instructorId,
     unlocked_at: Date.now(),
   });
+  if (error) {
+    console.error('unlockAnswer error:', error);
+    throw new Error(error.message || 'Cevap anahtarı açılamadı');
+  }
   addLog({ type: 'answer_unlocked', userId: instructorId, targetUser: studentId, taskId, detail: `Görev ${taskId} cevap anahtarı açıldı` });
 }
 

@@ -613,7 +613,77 @@ export default function App() {
 
   console.log("[BB-RENDER] loading:", loading, "user:", user?.id, "kit:", activeKit);
 
+  // ═══════════════════════════════════════════════════════════════
+  // GLOBAL RESPONSIVE CSS — Mobil/tablet/desktop için
+  // ═══════════════════════════════════════════════════════════════
+  const globalResponsiveCSS = `
+    * { box-sizing: border-box; }
+    html, body { 
+      max-width: 100vw; 
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+    img, video { max-width: 100%; height: auto; }
+    
+    /* Touch optimizations */
+    button, a, [role="button"] { 
+      min-height: 36px; 
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+    }
+    input, textarea, select { 
+      font-size: 16px !important;  /* iOS zoom fix */
+      max-width: 100%;
+    }
+    
+    /* Mobile (max-width: 640px) */
+    @media (max-width: 640px) {
+      body { font-size: 14px; }
+      
+      /* Topbar/Nav responsive */
+      nav { padding: 8px 10px !important; gap: 6px !important; }
+      nav h1, nav h2 { font-size: 16px !important; }
+      
+      /* Cards & containers */
+      .Card, [class*="Card"] { padding: 12px !important; }
+      
+      /* Hide expensive desktop-only decorations */
+      .hide-on-mobile, [data-hide-mobile] { display: none !important; }
+      
+      /* Grids collapse */
+      [style*="grid-template-columns"] { 
+        grid-template-columns: 1fr !important; 
+      }
+      
+      /* Buttons full width on mobile */
+      button { font-size: 13px !important; }
+      
+      /* Headings smaller */
+      h1 { font-size: 20px !important; }
+      h2 { font-size: 17px !important; }
+      h3 { font-size: 15px !important; }
+      
+      /* Reduce paddings */
+      [style*="padding:24px"], [style*="padding: 24px"] { padding: 14px !important; }
+      [style*="padding:30px"], [style*="padding: 30px"] { padding: 16px !important; }
+      [style*="padding:40px"], [style*="padding: 40px"] { padding: 18px !important; }
+    }
+    
+    /* Tablet (641-1024px) */
+    @media (min-width: 641px) and (max-width: 1024px) {
+      body { font-size: 15px; }
+    }
+    
+    /* Scrollbar polish */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+  `;
+
   if(loading)return(
+    <>
+    <style>{globalResponsiveCSS}</style>
     <div style={{
       background:T.bg,minHeight:"100vh",
       display:"flex",alignItems:"center",justifyContent:"center",
@@ -661,6 +731,7 @@ export default function App() {
         }
       `}</style>
     </div>
+    </>
   );
   // DEMO MODE — sadece BerryBot, kit selector atla
   if (DEMO_MODE && !user && !selectedKit) {
@@ -714,7 +785,28 @@ export default function App() {
         
         /* ═══ GLOBAL RESPONSIVE RULES ═══ */
         * { box-sizing: border-box; }
-        html, body { overflow-x: hidden; max-width: 100vw; }
+        html, body { 
+          overflow-x: hidden; 
+          max-width: 100vw;
+          -webkit-text-size-adjust: 100%;
+        }
+        img, video { max-width: 100%; height: auto; }
+        
+        /* iOS zoom on input fix */
+        input, textarea, select { font-size: 16px; }
+        
+        /* Touch optimization */
+        button, a, [role="button"] {
+          min-height: 36px;
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+        }
+        
+        /* Scrollbar polish */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
         
         /* Tablet & Below (≤900px) */
         @media (max-width: 900px) {
@@ -729,23 +821,42 @@ export default function App() {
         /* Phone (≤600px) */
         @media (max-width: 600px) {
           main { padding: 10px !important; }
-          nav { padding: 10px 12px !important; gap: 6px !important; }
-          nav b { font-size: 18px !important; }
-          h1 { font-size: 18px !important; }
-          h2 { font-size: 16px !important; }
-          button, input, select, textarea { font-size: 14px !important; }
+          nav { padding: 8px 10px !important; gap: 4px !important; }
+          nav img { max-height: 36px !important; }
+          nav b { font-size: 16px !important; }
+          h1 { font-size: 17px !important; }
+          h2 { font-size: 15px !important; }
+          h3 { font-size: 14px !important; }
+          button { font-size: 13px !important; padding: 8px 12px !important; }
+          input, select, textarea { font-size: 16px !important; }
           .resp-hide-phone { display: none !important; }
           .resp-cv-stack > div { width: 100% !important; }
           /* Make all grids single-column on phone */
           [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
           /* Smaller cards padding */
           .Card-mobile, [style*="padding:18"], [style*="padding: 18"] { padding: 12px !important; }
+          [style*="padding:24"], [style*="padding: 24"] { padding: 14px !important; }
+          [style*="padding:30"], [style*="padding: 30"] { padding: 16px !important; }
+          /* Tables horizontal scroll */
+          table { display: block; overflow-x: auto; white-space: nowrap; }
+          /* Big buttons full width */
+          button[style*="padding: 14px"], button[style*="padding:14px"] { width: 100% !important; }
         }
         
         /* Very small (≤400px) */
         @media (max-width: 400px) {
           main { padding: 8px !important; }
-          nav { padding: 8px 10px !important; }
+          nav { padding: 6px 8px !important; }
+          h1 { font-size: 15px !important; }
+          h2 { font-size: 14px !important; }
+          nav img { max-height: 30px !important; }
+          button { padding: 6px 10px !important; font-size: 12px !important; }
+        }
+        
+        /* Print: Hide nav, show only content (for CV) */
+        @media print {
+          nav, .no-print { display: none !important; }
+          body { background: white !important; color: black !important; }
         }
       `}</style>
       <nav style={{background:T.card,borderBottom:`1px solid ${T.border}`,padding:"12px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
