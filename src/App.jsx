@@ -931,7 +931,7 @@ export default function App() {
       <main style={{padding:16,maxWidth:1400,margin:"0 auto"}}>
 
         {/* ──── ADMIN ──── */}
-        {user.role===ROLES.ADMIN&&(page==="dash"||page==="users")&&<UserManager users={users} prog={prog} onAddUser={addUser} onSetProgress={setProgressTo} onRefresh={refresh}/>}
+        {user.role===ROLES.ADMIN&&(page==="dash"||page==="users")&&<UserManager users={users} prog={prog} onAddUser={addUser} onSetProgress={setProgressTo} onRefresh={refresh} customTasks={customTasks}/>}
         {user.role===ROLES.ADMIN&&page==="sd"&&selS&&<StudentDetail s={selS} prog={prog} users={users} answerUnlocks={answerUnlocks} onToggleUnlock={toggleAnswerUnlock} onBack={()=>nav("users")} customTasks={customTasks}/>}
         {user.role===ROLES.ADMIN&&page==="audit"&&<AuditLog logs={logs} users={users}/>}
         {user.role===ROLES.ADMIN&&page==="taskedit"&&<AdminTaskEditor customTasks={customTasks} onSave={saveCustomTask} onDelete={removeCustomTask} onUpload={uploadMedia} onRefresh={refresh} categories={categories} addNewCategory={addNewCategory}/>}
@@ -3761,7 +3761,7 @@ function AuditLog({logs,users}){
 // ═══════════════════════════════════════
 //  ADMIN: USER MANAGER
 // ═══════════════════════════════════════
-function UserManager({users,prog,onAddUser,onSetProgress,onRefresh}){
+function UserManager({users,prog,onAddUser,onSetProgress,onRefresh,customTasks}){
   const[showForm,setShowForm]=useState(false);
   const[name,setName]=useState("");const[email,setEmail]=useState("");const[pw,setPw]=useState("");
   const[role,setRole]=useState("student");const[grup,setGrup]=useState("Büyük");
@@ -3773,6 +3773,22 @@ function UserManager({users,prog,onAddUser,onSetProgress,onRefresh}){
   const[selTask,setSelTask]=useState(1);
   const[progMsg,setProgMsg]=useState(null);
   const[progBusy,setProgBusy]=useState(false);
+
+  // Seçili öğrencinin kit'ine göre görev listesi (DB-driven)
+  const getStudentTasks = (student) => {
+    if (!student) return [];
+    const studentKit = student.kit || "berrybot";
+    const fromDb = (t) => ({
+      id: t.task_id, title: t.title || "Görev", img: t.emoji || "📋",
+    });
+    const dbTasks = (customTasks || [])
+      .filter(t => (t.kit || "berrybot") === studentKit)
+      .map(fromDb)
+      .sort((a,b) => a.id - b.id);
+    return (DEMO_MODE || dbTasks.length > 0) ? dbTasks : TASKS;
+  };
+  const tasksForSelStudent = getStudentTasks(selStudent);
+  const totalTasksForStudent = tasksForSelStudent.length || 36;
 
   const handleAdd=async()=>{
     if(!name.trim()||!email.trim()||!pw.trim()){setMsg("Tüm alanları doldur!");return;}
@@ -3797,17 +3813,28 @@ function UserManager({users,prog,onAddUser,onSetProgress,onRefresh}){
   const admins=users.filter(u=>u.role==="admin");
   const parents=users.filter(u=>u.role==="parent");
 
-  // Get current task for a student
+  // Get current task for a student (DB-driven)
   const getCurrentTask=(sid)=>{
     const sp=prog[sid]||{};
-    for(let i=1;i<=36;i++){
-      const st=sp[i]?.status;
-      if(!st||st===TS.LOCKED)return i;
-      if(st===TS.ACTIVE||st===TS.IN_PROGRESS||st===TS.PENDING||st===TS.REJECTED)return i;
+    const student = users.find(u => u.id === sid);
+    const tList = getStudentTasks(student);
+    if (tList.length === 0) return 1;
+    for (const t of tList) {
+      const st = sp[t.id]?.status;
+      if (!st || st === TS.LOCKED) return t.id;
+      if (st === TS.ACTIVE || st === TS.IN_PROGRESS || st === TS.PENDING || st === TS.REJECTED) return t.id;
     }
-    return 36;
+    return tList[tList.length - 1].id;
   };
-  const getApprovedCount=(sid)=>TASKS.filter(t=>prog[sid]?.[t.id]?.status===TS.APPROVED).length;
+  const getApprovedCount = (sid) => {
+    const student = users.find(u => u.id === sid);
+    const tList = getStudentTasks(student);
+    return tList.filter(t => prog[sid]?.[t.id]?.status === TS.APPROVED).length;
+  };
+  const getStudentTotal = (sid) => {
+    const student = users.find(u => u.id === sid);
+    return getStudentTasks(student).length || 36;
+  };
 
   return(<div>
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
@@ -3858,7 +3885,7 @@ function UserManager({users,prog,onAddUser,onSetProgress,onRefresh}){
               <button key={s.id} onClick={()=>{setSelStudent(s);setSelTask(cur);setProgMsg(null);}} style={{width:"100%",padding:"10px 14px",border:"none",borderBottom:`1px solid ${T.border}22`,background:"transparent",color:T.tp,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:10,fontSize:14}}>
                 <div style={{width:34,height:34,borderRadius:"50%",background:T.orange+"20",color:T.orange,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,flexShrink:0}}>{s.name[0]}</div>
                 <div style={{flex:1}}><div style={{fontWeight:600}}>{s.name}</div><div style={{fontSize:12,color:T.tm}}>{s.email}</div></div>
-                <div style={{textAlign:"right"}}><div style={{fontSize:14,fontWeight:700,color:T.orange}}>{cnt}/36</div><div style={{fontSize:11,color:T.tm}}>Görev {cur}</div></div>
+                <div style={{textAlign:"right"}}><div style={{fontSize:14,fontWeight:700,color:T.orange}}>{cnt}/{getStudentTotal(s.id)}</div><div style={{fontSize:11,color:T.tm}}>Görev {cur}</div></div>
               </button>
             );
           })}
@@ -3866,7 +3893,7 @@ function UserManager({users,prog,onAddUser,onSetProgress,onRefresh}){
       ) : (
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"10px 14px",borderRadius:10,background:T.dark,border:`1px solid ${T.orange}44`}}>
           <div style={{width:40,height:40,borderRadius:"50%",background:T.orange+"20",color:T.orange,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:18}}>{selStudent.name[0]}</div>
-          <div style={{flex:1}}><div style={{fontSize:16,fontWeight:700}}>{selStudent.name}</div><div style={{fontSize:13,color:T.tm}}>Şu an: {getApprovedCount(selStudent.id)}/36 onaylı — Görev {getCurrentTask(selStudent.id)}'de</div></div>
+          <div style={{flex:1}}><div style={{fontSize:16,fontWeight:700}}>{selStudent.name}</div><div style={{fontSize:13,color:T.tm}}>Şu an: {getApprovedCount(selStudent.id)}/{totalTasksForStudent} onaylı — Görev {getCurrentTask(selStudent.id)}'de</div></div>
           <button onClick={()=>{setSelStudent(null);setProgMsg(null);}} style={{padding:"6px 14px",borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",color:T.ts,cursor:"pointer",fontSize:13}}>Değiştir</button>
         </div>
       )}
@@ -3876,16 +3903,24 @@ function UserManager({users,prog,onAddUser,onSetProgress,onRefresh}){
         <div style={{fontSize:14,fontWeight:600,color:T.ts,marginBottom:6}}>2. Hangi Görevden Devam Etsin?</div>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8,flexWrap:"wrap"}}>
           <select value={selTask} onChange={e=>setSelTask(Number(e.target.value))} style={{padding:"10px 14px",borderRadius:8,border:`1px solid ${T.border}`,background:T.input,color:T.tp,fontSize:16,outline:"none",minWidth:200}}>
-            {TASKS.map(t=><option key={t.id} value={t.id}>Görev {t.id}: {t.title}</option>)}
+            {tasksForSelStudent.map(t=><option key={t.id} value={t.id}>Görev {t.id}: {t.title}</option>)}
           </select>
-          <span style={{fontSize:14,color:T.tm}}>→ Görev 1-{selTask-1} onaylanır, {selTask} aktif olur</span>
+          <span style={{fontSize:14,color:T.tm}}>→ Önceki görevler onaylanır, {selTask} aktif olur</span>
         </div>
 
-        {/* Quick buttons */}
+        {/* Quick buttons - dinamik */}
         <div style={{display:"flex",gap:4,marginBottom:12,flexWrap:"wrap"}}>
-          {[1,5,10,15,20,25,30,33,36].map(n=>(
-            <button key={n} onClick={()=>setSelTask(n)} style={{padding:"6px 12px",borderRadius:6,border:selTask===n?`2px solid ${T.orange}`:`1px solid ${T.border}`,background:selTask===n?T.orange+"20":"transparent",color:selTask===n?T.orange:T.ts,cursor:"pointer",fontSize:13,fontWeight:selTask===n?700:400}}>G.{n}</button>
-          ))}
+          {tasksForSelStudent.length > 0 && (() => {
+            // İlk, son, ve aralarda 5'er ölçekli butonlar
+            const ids = tasksForSelStudent.map(t => t.id);
+            const total = ids.length;
+            const quickIds = total <= 10 
+              ? ids 
+              : [ids[0], ids[Math.floor(total*0.2)], ids[Math.floor(total*0.4)], ids[Math.floor(total*0.6)], ids[Math.floor(total*0.8)], ids[total-1]];
+            return quickIds.map(n => (
+              <button key={n} onClick={()=>setSelTask(n)} style={{padding:"6px 12px",borderRadius:6,border:selTask===n?`2px solid ${T.orange}`:`1px solid ${T.border}`,background:selTask===n?T.orange+"20":"transparent",color:selTask===n?T.orange:T.ts,cursor:"pointer",fontSize:13,fontWeight:selTask===n?700:400}}>G.{n}</button>
+            ));
+          })()}
         </div>
 
         <div style={{display:"flex",gap:10,alignItems:"center"}}>
@@ -3919,7 +3954,7 @@ function UserManager({users,prog,onAddUser,onSetProgress,onRefresh}){
     <Card>
       <div style={{maxHeight:560,overflowY:"auto"}}>
         {students.map((u,i)=>{
-          const cnt=getApprovedCount(u.id);const pct=Math.round(cnt/36*100);
+          const cnt=getApprovedCount(u.id);const totalForStudent=getStudentTotal(u.id);const pct=Math.round(cnt/totalForStudent*100);
           const enrolledKits = Array.isArray(u.kits) && u.kits.length > 0 
             ? u.kits 
             : (u.kit ? [u.kit] : []);
