@@ -229,6 +229,10 @@ const QUIZ=[
   {id:"q_rgb_3",topic:"RGB LED",q:"set_rgb(255,255,0) hangi renk olur?",opts:["Mor","Sarı","Camgöbeği","Pembe"],ans:1,xp:8},
   {id:"q_rgb_4",topic:"RGB LED",q:"RGB değer aralığı kaçtan kaça kadardır?",opts:["0-100","0-255","0-1024","-128 ile 127"],ans:1,xp:5},
   {id:"q_rgb_5",topic:"RGB LED",q:"Tüm değerler 0 olduğunda LED ne yapar?",opts:["Beyaz yanar","Kırmızı yanar","Söner (kapalı)","Yanıp söner"],ans:2,xp:5},
+  {id:"q_rgb_6",topic:"RGB LED",q:"BerryBot'ta kaç adet RGB LED vardır?",opts:["2","4","6","8"],ans:1,xp:5},
+  {id:"q_rgb_7",topic:"RGB LED",q:"set_rgb(255,0,255) hangi renk olur?",opts:["Sarı","Mor (Magenta)","Camgöbeği","Turuncu"],ans:1,xp:8},
+  {id:"q_rgb_8",topic:"RGB LED",q:"Bir RGB LED kaç farklı renk üretebilir?",opts:["256","16384","16 milyon","Sınırsız"],ans:2,xp:10},
+  {id:"q_rgb_9",topic:"RGB LED",q:"RGB LED içinde aslında kaç tane LED vardır?",opts:["1","2","3","4"],ans:2,xp:5},
 
   // ─── Motor ───
   {id:"q_mot_1",topic:"Motor",q:"DC motor robotu hareket için nasıl kontrol edilir?",opts:["Sadece açıp kapamak","Hız ve yön kontrolü","Sadece ses","Sadece ışık"],ans:1,xp:5},
@@ -236,6 +240,9 @@ const QUIZ=[
   {id:"q_mot_3",topic:"Motor",q:"Robotun sağa dönmesi için ne yapılır?",opts:["İki motor da ileri","Sol motor ileri sağ motor geri","İki motor geri","İki motor durur"],ans:1,xp:8},
   {id:"q_mot_4",topic:"Motor",q:"PWM nedir?",opts:["Permanent Wave Motor","Pulse Width Modulation","Power Wire Mode","Programlama Web Modu"],ans:1,xp:10},
   {id:"q_mot_5",topic:"Motor",q:"Motor hızı %50 demek nedir?",opts:["Yarım voltaj","PWM duty %50","Yarı dönüş","2 saniye gider"],ans:1,xp:8},
+  {id:"q_mot_6",topic:"Motor",q:"Diferansiyel sürüş ne demektir?",opts:["Tek motor kullanır","İki motor farklı hızlarda döner","Sadece geri gider","Sadece ileri gider"],ans:1,xp:10},
+  {id:"q_mot_7",topic:"Motor",q:"Sol motor ileri, sağ motor geri olursa robot ne yapar?",opts:["İleri gider","Geri gider","Yerinde sağa döner","Yerinde sola döner"],ans:3,xp:10},
+  {id:"q_mot_8",topic:"Motor",q:"Robotu yerinde döndürmek için ne yapılmalı?",opts:["Tek motor çalışır","İki motor zıt yönde döner","İki motor aynı yönde","Hiç motor çalışmaz"],ans:1,xp:8},
 
   // ─── Sensör ───
   {id:"q_sen_1",topic:"Sensörler",q:"Ultrasonik sensör neyi ölçer?",opts:["Sıcaklık","Mesafe","Renk","Ses"],ans:1,xp:5},
@@ -243,19 +250,42 @@ const QUIZ=[
   {id:"q_sen_3",topic:"Sensörler",q:"LDR sensörü neyi algılar?",opts:["Sıcaklık","Işık","Hareket","Nem"],ans:1,xp:5},
   {id:"q_sen_4",topic:"Sensörler",q:"IR sensörü ne işe yarar?",opts:["Su geçirmezlik","Kızılötesi sinyal almak","Renk algılamak","GPS"],ans:1,xp:8},
   {id:"q_sen_5",topic:"Sensörler",q:"Ultrasonik sensör 30cm görürse engel hakkında ne söylenir?",opts:["Yakın","Uzak","Sensör bozuk","Renk siyah"],ans:0,xp:5},
+  {id:"q_sen_6",topic:"Sensörler",q:"HC-SR04 sensörü hangi tipte bir sensördür?",opts:["Sıcaklık","Ultrasonik mesafe","Renk","İvme"],ans:1,xp:8},
+  {id:"q_sen_7",topic:"Sensörler",q:"Ultrasonik sensör maksimum kaç metreye kadar ölçebilir?",opts:["0.5 m","2 m","4 m","20 m"],ans:2,xp:10},
+  {id:"q_sen_8",topic:"Sensörler",q:"Çizgi sensörü siyah çizgiyi nasıl algılar?",opts:["Sıcak gelir","Az ışık yansıtır","Çok ışık yansıtır","Manyetik etki"],ans:1,xp:10},
 
   // ─── Buzzer ───
   {id:"q_buz_1",topic:"Buzzer",q:"Buzzer ne işe yarar?",opts:["Işık verir","Ses üretir","Hareket eder","Mesafe ölçer"],ans:1,xp:5},
   {id:"q_buz_2",topic:"Buzzer",q:"Buzzer'da 440 Hz değeri hangi notayı temsil eder?",opts:["Do","Re","La","Sol"],ans:2,xp:10},
+  {id:"q_buz_3",topic:"Buzzer",q:"Buzzer'ın frekansı ne kadar yüksekse ses...",opts:["Daha alçak","Daha yüksek (tiz)","Aynı kalır","Hiç çıkmaz"],ans:1,xp:8},
+  {id:"q_buz_4",topic:"Buzzer",q:"Buzzer ile mors kodu çalmak için ne kullanılır?",opts:["Sadece açma","Açma/kapama süreleri (kısa-uzun)","Renk","Sıcaklık"],ans:1,xp:10},
 
   // ─── IR Kumanda ───
   {id:"q_ir_1",topic:"IR Kumanda",q:"IR kumanda hangi dalga boyu ile çalışır?",opts:["Görünür ışık","Kızılötesi","Ultraviyole","Radyo dalgası"],ans:1,xp:8},
   {id:"q_ir_2",topic:"IR Kumanda",q:"IR alıcısı kaç pin ile bağlanır genelde?",opts:["1","2","3","5"],ans:2,xp:8},
+  {id:"q_ir_3",topic:"IR Kumanda",q:"IR sinyali engeller arasından geçer mi?",opts:["Evet, duvardan geçer","Hayır, ışık gibi engellenir","Sadece metal engeller","Sadece su engeller"],ans:1,xp:8},
+  {id:"q_ir_4",topic:"IR Kumanda",q:"IR kumanda hangi cihazlarda kullanılır?",opts:["Sadece TV","TV, klima, robot","Sadece radyo","Sadece bilgisayar"],ans:1,xp:5},
 
   // ─── Programlama Temelleri ───
   {id:"q_prog_1",topic:"Programlama",q:"Bir değişken neye benzer?",opts:["Sabit kutu","Etiketli bir kutu","Çıkmaz sokak","Sadece sayı"],ans:1,xp:5},
   {id:"q_prog_2",topic:"Programlama",q:"Robotun karar vermesi için kullandığımız blok nedir?",opts:["if (eğer)","print","wait","loop"],ans:0,xp:5},
   {id:"q_prog_3",topic:"Programlama",q:"Tekrar etmesi için kullandığımız yapı?",opts:["if","while/for","def","import"],ans:1,xp:5},
+  {id:"q_prog_4",topic:"Programlama",q:"'Forever' (sonsuza kadar) bloku ne yapar?",opts:["1 kez çalışır","Belirli sayıda tekrar","Sonsuza kadar tekrar eder","Hiç çalışmaz"],ans:2,xp:8},
+  {id:"q_prog_5",topic:"Programlama",q:"Bir koşul yanlış olursa hangi blok çalışır?",opts:["if içindeki","else içindeki","while içindeki","for içindeki"],ans:1,xp:8},
+  {id:"q_prog_6",topic:"Programlama",q:"Algoritma nedir?",opts:["Bir robot türü","Problem çözmek için adımlar","Bir sensör","Bir motor"],ans:1,xp:8},
+  {id:"q_prog_7",topic:"Programlama",q:"500 milisaniye kaç saniyedir?",opts:["5 saniye","0.5 saniye","50 saniye","0.05 saniye"],ans:1,xp:5},
+  {id:"q_prog_8",topic:"Programlama",q:"Hangi blok kod akışını duraklatır?",opts:["wait/delay","if","print","set"],ans:0,xp:5},
+
+  // ─── Elektronik ───
+  {id:"q_ele_1",topic:"Elektronik",q:"BerryBot kaç voltla çalışır?",opts:["3.3V","5V","12V","220V"],ans:1,xp:8},
+  {id:"q_ele_2",topic:"Elektronik",q:"Pil bağlarken nelere dikkat etmeli?",opts:["Renge","+ ve - kutuplara","Boyuna","Ağırlığına"],ans:1,xp:8},
+  {id:"q_ele_3",topic:"Elektronik",q:"Kısa devre ne demektir?",opts:["Kabloyu kesmek","+ ve - direkt bağlamak (tehlikeli)","Pili çıkarmak","LED yakmak"],ans:1,xp:10},
+  {id:"q_ele_4",topic:"Elektronik",q:"Lehimleme için ne kullanılır?",opts:["Yapıştırıcı","Havya ve lehim teli","Bant","Vida"],ans:1,xp:8},
+
+  // ─── Sumo Robot ───
+  {id:"q_sumo_1",topic:"Sumo Robot",q:"Sumo robot yarışmasında amaç nedir?",opts:["En hızlı olmak","Rakibi ringden çıkarmak","En yüksek atlamak","En çok ses çıkarmak"],ans:1,xp:10},
+  {id:"q_sumo_2",topic:"Sumo Robot",q:"Sumo robotun ringten çıkmaması için hangi sensör kullanılır?",opts:["Ses sensörü","Sıcaklık","Çizgi/Renk sensörü","GPS"],ans:2,xp:10},
+  {id:"q_sumo_3",topic:"Sumo Robot",q:"Sumo ringinin sınırı genelde nasıldır?",opts:["Mavi çizgi","Beyaz çizgi","Hiç çizgi yok","Kırmızı çizgi"],ans:1,xp:8},
 ];
 
 // ─── KOD CHALLENGE (öğrencinin kodu seçmesi) ───
@@ -744,8 +774,8 @@ export default function App() {
           )}
         </div>
         <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-          {user.role===ROLES.ADMIN&&<><NBtn a={page==="dash"} o={()=>nav("dash")}>Sınıf</NBtn><NBtn a={page==="users"} o={()=>nav("users")}>Kullanıcılar</NBtn><NBtn a={page==="taskedit"} o={()=>nav("taskedit")}>📝 Görev Editörü</NBtn><NBtn a={page==="hwedit"} o={()=>nav("hwedit")}>📋 Ödev Şablonları</NBtn><NBtn a={page==="audit"} o={()=>nav("audit")}>Audit</NBtn><NBtn a={page==="tasks"} o={()=>nav("tasks")}>Görevler</NBtn></>}
-          {user.role===ROLES.INSTRUCTOR&&<><NBtn a={page==="dash"} o={()=>nav("dash")}>Panel</NBtn><NBtn a={page==="pend"} o={()=>nav("pend")}>Onay</NBtn><NBtn a={page==="hw"} o={()=>nav("hw")}>📝 Ödev</NBtn><NBtn a={page==="show"} o={()=>nav("show")}>📊 Show</NBtn><NBtn a={page==="tasks"} o={()=>nav("tasks")}>Görevler</NBtn></>}
+          {user.role===ROLES.ADMIN&&<><NBtn a={page==="users"} o={()=>nav("users")}>Kullanıcılar</NBtn><NBtn a={page==="taskedit"} o={()=>nav("taskedit")}>📝 Görev Editörü</NBtn><NBtn a={page==="hwedit"} o={()=>nav("hwedit")}>📋 Ödev Şablonları</NBtn><NBtn a={page==="audit"} o={()=>nav("audit")}>Audit</NBtn><NBtn a={page==="tasks"} o={()=>nav("tasks")}>Görevler</NBtn></>}
+          {user.role===ROLES.INSTRUCTOR&&<><NBtn a={page==="dash"} o={()=>nav("dash")}>Panel</NBtn><NBtn a={page==="class"} o={()=>nav("class")}>🪑 Sınıf Düzeni</NBtn><NBtn a={page==="pend"} o={()=>nav("pend")}>Onay</NBtn><NBtn a={page==="hw"} o={()=>nav("hw")}>📝 Ödev</NBtn><NBtn a={page==="show"} o={()=>nav("show")}>📊 Show</NBtn><NBtn a={page==="tasks"} o={()=>nav("tasks")}>Görevler</NBtn></>}
           {user.role===ROLES.STUDENT&&<><NBtn a={page==="dash"} o={()=>nav("dash")}>🗺️ Görev</NBtn><NBtn a={page==="practice"} o={()=>nav("practice")}>🧠 Practice</NBtn><NBtn a={page==="hw"} o={()=>nav("hw")}>📝 Ödev</NBtn></>}
           {user.role===ROLES.PARENT&&null}
         </div>
@@ -790,9 +820,8 @@ export default function App() {
       <main style={{padding:16,maxWidth:1400,margin:"0 auto"}}>
 
         {/* ──── ADMIN ──── */}
-        {user.role===ROLES.ADMIN&&page==="dash"&&<AdminClassroom users={users} prog={prog} classLayout={classLayout} saveLayout={handleSaveLayout} onClearHelp={handleClearHelp} onSel={s=>{setSelS(s);setPage("sd");}}/>}
-        {user.role===ROLES.ADMIN&&page==="sd"&&selS&&<StudentDetail s={selS} prog={prog} users={users} answerUnlocks={answerUnlocks} onToggleUnlock={toggleAnswerUnlock} onBack={()=>nav("dash")}/>}
-        {user.role===ROLES.ADMIN&&page==="users"&&<UserManager users={users} prog={prog} onAddUser={addUser} onSetProgress={setProgressTo} onRefresh={refresh}/>}
+        {user.role===ROLES.ADMIN&&(page==="dash"||page==="users")&&<UserManager users={users} prog={prog} onAddUser={addUser} onSetProgress={setProgressTo} onRefresh={refresh}/>}
+        {user.role===ROLES.ADMIN&&page==="sd"&&selS&&<StudentDetail s={selS} prog={prog} users={users} answerUnlocks={answerUnlocks} onToggleUnlock={toggleAnswerUnlock} onBack={()=>nav("users")} customTasks={customTasks}/>}
         {user.role===ROLES.ADMIN&&page==="audit"&&<AuditLog logs={logs} users={users}/>}
         {user.role===ROLES.ADMIN&&page==="taskedit"&&<AdminTaskEditor customTasks={customTasks} onSave={saveCustomTask} onDelete={removeCustomTask} onUpload={uploadMedia} onRefresh={refresh} categories={categories} addNewCategory={addNewCategory}/>}
         {user.role===ROLES.ADMIN&&page==="hwedit"&&<AdminHomeworkEditor hwTemplates={hwTemplates} onSave={saveHwTemplate} onDelete={removeHwTemplate} onUpload={uploadHwMedia} onRefresh={refresh} categories={categories} addNewCategory={addNewCategory}/>}
@@ -800,7 +829,8 @@ export default function App() {
 
         {/* ──── INSTRUCTOR ──── */}
         {user.role===ROLES.INSTRUCTOR&&page==="dash"&&<InstructorDash user={user} users={users} prog={prog} onClearHelp={handleClearHelp} onSel={s=>{setSelS(s);setPage("sdi");}}/>}
-        {user.role===ROLES.INSTRUCTOR&&page==="sdi"&&selS&&<StudentDetail s={selS} prog={prog} users={users} answerUnlocks={answerUnlocks} onToggleUnlock={toggleAnswerUnlock} canReview onApprove={handleApprove} onReject={handleReject} onBack={()=>nav("dash")}/>}
+        {user.role===ROLES.INSTRUCTOR&&page==="class"&&<AdminClassroom users={users} prog={prog} classLayout={classLayout} saveLayout={handleSaveLayout} onClearHelp={handleClearHelp} onSel={s=>{setSelS(s);setPage("sdi");}}/>}
+        {user.role===ROLES.INSTRUCTOR&&page==="sdi"&&selS&&<StudentDetail s={selS} prog={prog} users={users} answerUnlocks={answerUnlocks} onToggleUnlock={toggleAnswerUnlock} canReview onApprove={handleApprove} onReject={handleReject} onBack={()=>nav("dash")} customTasks={customTasks}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="pend"&&<PendingReviews user={user} users={users} prog={prog} onApprove={handleApprove} onReject={handleReject}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="show"&&<DailyShow users={users} prog={prog} logs={logs} onSel={s=>{setSelS(s);setPage("sdi");}}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="tasks"&&<TaskBrowser showAns customTasks={customTasks}/>}
@@ -813,7 +843,7 @@ export default function App() {
         {user.role===ROLES.STUDENT&&page==="hw"&&<StudentHomeworkV2 user={user} hwTemplates={hwTemplates} hwAssignments={hwAssignments} onSubmit={submitHwV2} onUploadMedia={uploadHwMedia}/>}
 
         {/* ──── PARENT ──── */}
-        {user.role===ROLES.PARENT&&<ParentView parent={user} users={users} prog={prog} classLayout={classLayout} logs={logs} initialTab={page==="cv"?"cv":"class"}/>}
+        {user.role===ROLES.PARENT&&<ParentView parent={user} users={users} prog={prog} classLayout={classLayout} logs={logs} initialTab={page==="cv"?"cv":"class"} customTasks={customTasks}/>}
       </main>
     </div>
   );
@@ -3301,17 +3331,31 @@ function FilterPill({active,onClick,label,count,color,highlight}){
 // ═══════════════════════════════════════
 //  STUDENT DETAIL
 // ═══════════════════════════════════════
-function StudentDetail({s,prog,users,canReview,answerUnlocks=[],onToggleUnlock,onApprove,onReject,onBack}){
+function StudentDetail({s,prog,users,canReview,answerUnlocks=[],onToggleUnlock,onApprove,onReject,onBack,customTasks}){
   const[note,setNote]=useState("");
-  const sp=prog[s.id]||{};const cnt=TASKS.filter(t=>sp[t.id]?.status===TS.APPROVED).length;
-  const xp=TASKS.filter(t=>sp[t.id]?.status===TS.APPROVED).reduce((a,t)=>a+t.xp,0);
+  // DB'den kit'e ait görevleri al
+  const kit = s.kit || "berrybot";
+  const fromDb = (t) => ({
+    id: t.task_id, title: t.title || "Görev", cat: t.category || "Genel",
+    diff: t.difficulty || 1, expectedMin: t.expected_min || 15, xp: t.xp || 10,
+    img: t.emoji || "📋", desc: t.description || "", answer: t.answer || "",
+    learnings: t.learnings || [],
+    image_url: t.image_url || "", video_url: t.video_url || "",
+    answer_image_url: t.answer_image_url || "",
+  });
+  const dbTasks = (customTasks || []).filter(t => (t.kit || "berrybot") === kit).map(fromDb).sort((a,b)=>a.id-b.id);
+  const TLIST = (DEMO_MODE || dbTasks.length > 0) ? dbTasks : TASKS;
+  const sp=prog[s.id]||{};
+  const cnt=TLIST.filter(t=>sp[t.id]?.status===TS.APPROVED).length;
+  const xp=TLIST.filter(t=>sp[t.id]?.status===TS.APPROVED).reduce((a,t)=>a+t.xp,0);
+  const totalTasks = TLIST.length || 1;
   const unlockedSet=new Set(answerUnlocks.filter(au=>au.student_id===s.id).map(au=>au.task_id));
   return(<div>
     <button onClick={onBack} style={{fontSize:14,padding:"6px 14px",borderRadius:8,background:T.border,color:T.ts,border:"none",cursor:"pointer",marginBottom:12}}>← Geri</button>
     <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
       <div style={{width:52,height:52,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,fontWeight:700,background:T.orange+"15",color:T.orange}}>{s.name[0]}</div>
       <div><h2 style={{margin:0,fontSize:20}}>{s.name}</h2><div style={{fontSize:14,color:T.tm}}>{getLevel(xp).icon} Lv.{getLevel(xp).lv} • {xp} XP</div></div>
-      <div style={{marginLeft:"auto",fontSize:28,fontWeight:800,color:T.orange}}>{cnt}/36</div>
+      <div style={{marginLeft:"auto",fontSize:28,fontWeight:800,color:T.orange}}>{cnt}/{totalTasks}</div>
     </div>
 
     {canReview&&onToggleUnlock&&<div style={{marginBottom:12,padding:"10px 14px",borderRadius:10,background:`${T.purple}22`,border:`1px solid ${T.purple}55`,fontSize:13,color:T.ts,display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
@@ -3320,13 +3364,18 @@ function StudentDetail({s,prog,users,canReview,answerUnlocks=[],onToggleUnlock,o
       <span style={{fontSize:12,fontWeight:700,color:T.pl,padding:"3px 10px",borderRadius:8,background:T.purple+"33"}}>{unlockedSet.size} açık</span>
     </div>}
 
-    <Card>{TASKS.map(t=>{const tp=sp[t.id]||{};const lk=tp.status===TS.LOCKED;const pn=tp.status===TS.PENDING;
+    <Card>{TLIST.map(t=>{const tp=sp[t.id]||{};const lk=tp.status===TS.LOCKED;const pn=tp.status===TS.PENDING;
       const started=tp.startedAt;const completed=tp.completedAt||tp.approvedAt;
       const dur=(started&&completed)?fd(completed-started):null;
       const unlocked=unlockedSet.has(t.id);
       return(<div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:8,marginBottom:4,opacity:lk?.4:1,background:pn?T.purple+"15":"transparent"}}>
         <span style={{width:26,fontSize:13,fontFamily:"monospace",color:T.tm,textAlign:"center"}}>#{t.id}</span>
-        <TaskImage taskId={t.id} type="gorsel" size={30} fallbackEmoji={t.img} style={{borderRadius:5}}/>
+        {t.image_url ? (
+          <img src={t.image_url} alt="" style={{width:30,height:30,objectFit:"cover",borderRadius:5}}
+            onError={(e)=>{e.target.style.display="none";}} />
+        ) : (
+          <div style={{width:30,height:30,borderRadius:5,background:T.purple+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{t.img}</div>
+        )}
         <div style={{flex:1,minWidth:0}}>
           <span style={{fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"block"}}>{t.title}</span>
           {dur&&<span style={{fontSize:11,color:T.ok}}><I.Clock/> {dur}</span>}
@@ -4001,7 +4050,7 @@ function DailyShow({users,prog,logs,onSel}){
 // ═══════════════════════════════════════════════════════════════
 // PARENT VIEW — Tabs at top, hero card below with current task
 // ═══════════════════════════════════════════════════════════════
-function ParentView({parent,users,prog,classLayout,logs,initialTab="class"}){
+function ParentView({parent,users,prog,classLayout,logs,initialTab="class",customTasks}){
   const[tab,setTab]=useState(initialTab);
   const child=users.find(u=>u.id===parent.childId);
 
@@ -4011,17 +4060,32 @@ function ParentView({parent,users,prog,classLayout,logs,initialTab="class"}){
     <div style={{fontSize:14,color:T.ts,lineHeight:1.6}}>Henüz hesabınıza bir öğrenci atanmamış görünüyor. Lütfen okul yönetimi veya BerryBot ekibiyle iletişime geçin.</div>
   </div>);
 
+  // DB'den çocuğun kit'ine ait görevleri al (DEMO ve production'da çalışır)
+  const kit = child.kit || "berrybot";
+  const fromDb = (t) => ({
+    id: t.task_id, title: t.title || "Görev", cat: t.category || "Genel",
+    diff: t.difficulty || 1, expectedMin: t.expected_min || 15, xp: t.xp || 10,
+    img: t.emoji || "📋", desc: t.description || "", answer: t.answer || "",
+    learnings: t.learnings || [],
+    image_url: t.image_url || "", video_url: t.video_url || "",
+    answer_image_url: t.answer_image_url || "",
+  });
+  const dbTasks = (customTasks || []).filter(t => (t.kit || "berrybot") === kit).map(fromDb).sort((a,b)=>a.id-b.id);
+  // DEMO veya DB doluysa DB; production'da DB boşsa TASKS fallback
+  const childTasks = (DEMO_MODE || dbTasks.length > 0) ? dbTasks : TASKS;
+
   const sp=prog[child.id]||{};
-  const completed=TASKS.filter(t=>sp[t.id]?.status===TS.APPROVED);
+  const completed=childTasks.filter(t=>sp[t.id]?.status===TS.APPROVED);
   const xp=completed.reduce((a,t)=>a+t.xp,0);
   const lv=getLevel(xp);
   const nlv=getNextLevel(xp);
   const lvProgress=nlv?((xp-lv.min)/(nlv.min-lv.min))*100:100;
   const cnt=completed.length;
-  const pct=Math.round(cnt/36*100);
+  const totalTasks=childTasks.length || 1;
+  const pct=Math.round(cnt/totalTasks*100);
   const avgScore=calcAvgScore(sp);
   const isOnline=child.online||(prog[child.id]?.online);
-  const currentTask=TASKS.find(t=>sp[t.id]?.status===TS.ACTIVE||sp[t.id]?.status===TS.IN_PROGRESS||sp[t.id]?.status===TS.PENDING);
+  const currentTask=childTasks.find(t=>sp[t.id]?.status===TS.ACTIVE||sp[t.id]?.status===TS.IN_PROGRESS||sp[t.id]?.status===TS.PENDING);
 
   // Today's progress
   const dayStart=new Date();dayStart.setHours(0,0,0,0);
@@ -4232,9 +4296,9 @@ function ParentView({parent,users,prog,classLayout,logs,initialTab="class"}){
 
     {/* ═══ CONTENT ═══ */}
     <div className="pv-content" key={tab}>
-      {tab==="class"&&<ParentClassroomView child={child} sp={sp} classLayout={classLayout} logs={logs} prog={prog}/>}
-      {tab==="learnings"&&<ParentLearningsView child={child} sp={sp}/>}
-      {tab==="cv"&&<ParentCVView child={child} sp={sp}/>}
+      {tab==="class"&&<ParentClassroomView child={child} sp={sp} classLayout={classLayout} logs={logs} prog={prog} childTasks={childTasks}/>}
+      {tab==="learnings"&&<ParentLearningsView child={child} sp={sp} childTasks={childTasks}/>}
+      {tab==="cv"&&<ParentCVView child={child} sp={sp} childTasks={childTasks}/>}
     </div>
   </div>);
 }
@@ -4256,7 +4320,8 @@ function PVStat({icon,label,value,unit,color,highlight}){
 // ═══════════════════════════════════════════════════════════════
 // TAB 1: SINIF & AKTİVİTE — Yenilenmiş, ekran yerleşimi + aktivite üstte
 // ═══════════════════════════════════════════════════════════════
-function ParentClassroomView({child,sp,classLayout,logs,prog}){
+function ParentClassroomView({child,sp,classLayout,logs,prog,childTasks}){
+  const TLIST = (childTasks && childTasks.length) ? childTasks : TASKS;
   const[showLayout,setShowLayout]=useState(true); // Veli isterse gizleyebilir
 
   // Find which class & seat
@@ -4270,7 +4335,7 @@ function ParentClassroomView({child,sp,classLayout,logs,prog}){
     if(myClass)break;
   }
 
-  const current=TASKS.find(t=>sp[t.id]?.status===TS.ACTIVE||sp[t.id]?.status===TS.IN_PROGRESS||sp[t.id]?.status===TS.PENDING);
+  const current=TLIST.find(t=>sp[t.id]?.status===TS.ACTIVE||sp[t.id]?.status===TS.IN_PROGRESS||sp[t.id]?.status===TS.PENDING);
   const childLogs=(logs||[]).filter(l=>l.userId===child.id||l.targetUser===child.id).slice(0,30);
   const currentPage=prog[child.id]?.currentPage;
   const currentTaskId=prog[child.id]?.currentTaskId;
@@ -4580,8 +4645,9 @@ function ParentMiniClassroom({myClass,childId}){
   </div>);
 }
 
-function ParentLearningsView({child,sp}){
-  const completed=TASKS.filter(t=>sp[t.id]?.status===TS.APPROVED);
+function ParentLearningsView({child,sp,childTasks}){
+  const TLIST = (childTasks && childTasks.length) ? childTasks : TASKS;
+  const completed=TLIST.filter(t=>sp[t.id]?.status===TS.APPROVED);
   const xp=completed.reduce((a,t)=>a+t.xp,0);
   let totalMs=0;
   completed.forEach(t=>{const tp=sp[t.id];if(tp.startedAt&&tp.completedAt)totalMs+=Math.max(0,tp.completedAt-tp.startedAt);});
@@ -4594,9 +4660,10 @@ function ParentLearningsView({child,sp}){
       color:T.warn,
       bg:`linear-gradient(135deg,${T.warn}22,${T.card})`,
       border:T.warn,
-      keywords:["motor","tekerlek","servo","mekanik","montaj","yapı","robot","araç","gövde","hareket","yön","döner","sürüş"],
-      tasks:["Motor","Mesafe/Navigasyon","Sumo Robot","Engel Algılama"],
-      desc:"Robotun fiziksel parçalarını ve hareket sistemlerini öğrendi",
+      keywords:["motor","tekerlek","servo","mekanik","montaj","yapı","robot","araç","gövde","hareket","yön","döner","sürüş","matkap","metrik","havya","tornavida","vida","cıvata","somun","lehim","kablo","akım","voltaj"],
+      tasks:["Motor","Mesafe/Navigasyon","Sumo Robot","Engel Algılama","Montaj"],
+      desc:"Robotun fiziksel parçalarını monte etti, matkap-tornavida-metrik-havya gibi donanım aletlerini öğrendi",
+      tools:["🔩 Matkap & Uçlar","🛠️ Tornavida Seti (Metrik/İmperyal)","⚡ Havya & Lehim Teli","🔧 Cırcırlı Anahtar","📏 Kumpas & Cetvel","🧰 Pense & Kerpeten"],
     },
     "💻 Yazılım & Algoritma":{
       color:T.cyan,
@@ -4653,7 +4720,7 @@ function ParentLearningsView({child,sp}){
         <div style={{fontSize:11,color:T.ts,fontWeight:600,marginTop:4}}>📚 KAZANIM</div>
       </div>
       <div style={{padding:14,borderRadius:14,background:`linear-gradient(135deg,${T.ok}22,${T.card})`,border:`1px solid ${T.ok}44`,textAlign:"center"}}>
-        <div style={{fontSize:22,fontWeight:900,color:T.ok,lineHeight:1}}>{Math.round(completed.length/36*100)}%</div>
+        <div style={{fontSize:22,fontWeight:900,color:T.ok,lineHeight:1}}>{Math.round(completed.length/(TLIST.length || 1)*100)}%</div>
         <div style={{fontSize:11,color:T.ts,fontWeight:600,marginTop:4}}>📊 İLERLEME</div>
       </div>
       {avgScore!==null&&<div style={{padding:14,borderRadius:14,background:`${gradeColor(avgScore)}22`,border:`2px solid ${gradeColor(avgScore)}66`,textAlign:"center"}}>
@@ -4750,6 +4817,24 @@ function ParentLearningsView({child,sp}){
                   ))}
                 </div>
               </>}
+              {/* MEKANIK alanı için araç-gereç listesi */}
+              {cat.tools && cat.tools.length > 0 && (
+                <div style={{marginTop: 14, padding: 12, borderRadius: 10, background: T.dark, border: `1px solid ${cat.color}33`}}>
+                  <div style={{fontSize: 11, color: cat.color, fontWeight: 800, letterSpacing: 1, marginBottom: 8, textTransform: "uppercase"}}>
+                    🛠️ Kullandığı Donanım & Aletler
+                  </div>
+                  <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 6}}>
+                    {cat.tools.map((tool, i) => (
+                      <div key={i} style={{
+                        padding: "6px 10px", borderRadius: 8,
+                        background: cat.color + "15",
+                        border: `1px solid ${cat.color}33`,
+                        fontSize: 12, color: T.tp, fontWeight: 600,
+                      }}>{tool}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ):(
             <div style={{padding:14,textAlign:"center",borderRadius:10,background:T.dark,border:`1px dashed ${cat.color}33`}}>
@@ -4796,8 +4881,9 @@ function ParentLearningsView({child,sp}){
 // ═══════════════════════════════════════════════════════════════
 // TAB 3: CV / SERTİFİKA — Mekanik / Yazılım / Elektronik vurgulu
 // ═══════════════════════════════════════════════════════════════
-function ParentCVView({child,sp}){
-  const completed=TASKS.filter(t=>sp[t.id]?.status===TS.APPROVED);
+function ParentCVView({child,sp,childTasks}){
+  const TLIST = (childTasks && childTasks.length) ? childTasks : TASKS;
+  const completed=TLIST.filter(t=>sp[t.id]?.status===TS.APPROVED);
   const xp=completed.reduce((a,t)=>a+t.xp,0);
   const lv=getLevel(xp);
   let totalMs=0;
@@ -5025,11 +5111,28 @@ function PracticeView({user,practiceProg,onAnswer}){
   const[selectedOpt,setSelectedOpt]=useState(null);
   const[showResult,setShowResult]=useState(false);
   const[startTime,setStartTime]=useState(null);
+  const[streak,setStreak]=useState(0);
 
   // Stats
   const quizStats={total:QUIZ.length,correct:practiceProg.filter(p=>p.category==="quiz"&&p.correct>0).length};
   const codeStats={total:CODE_CHALLENGES.length,correct:practiceProg.filter(p=>p.category==="code"&&p.correct>0).length};
   const totalXP=practiceProg.reduce((a,p)=>a+(p.xp_earned||0),0);
+
+  // Shuffle options + track new correct index (cevapların hep ilk sırada gözükmesini önler)
+  const shuffleOptions = (q) => {
+    const indexedOpts = q.opts.map((opt, idx) => ({ opt, originalIdx: idx }));
+    // Fisher-Yates shuffle
+    for (let i = indexedOpts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indexedOpts[i], indexedOpts[j]] = [indexedOpts[j], indexedOpts[i]];
+    }
+    const newAnsIdx = indexedOpts.findIndex(x => x.originalIdx === q.ans);
+    return {
+      ...q,
+      opts: indexedOpts.map(x => x.opt),
+      ans: newAnsIdx,
+    };
+  };
 
   const startRandom=(category)=>{
     const pool=category==="quiz"?QUIZ:CODE_CHALLENGES;
@@ -5039,7 +5142,8 @@ function PracticeView({user,practiceProg,onAnswer}){
       return !pp||pp.correct===0;
     });
     const target=unsolved.length>0?unsolved:pool;
-    const q=target[Math.floor(Math.random()*target.length)];
+    const rawQ=target[Math.floor(Math.random()*target.length)];
+    const q=shuffleOptions(rawQ);  // ★ Karıştır!
     setCurrentQ({...q,category});
     setSelectedOpt(null);
     setShowResult(false);
@@ -5051,6 +5155,7 @@ function PracticeView({user,practiceProg,onAnswer}){
     if(selectedOpt===null||!currentQ)return;
     const isCorrect=selectedOpt===currentQ.ans;
     setShowResult(true);
+    setStreak(isCorrect ? streak + 1 : 0);
     onAnswer({
       questionId:currentQ.id,
       category:currentQ.category,
