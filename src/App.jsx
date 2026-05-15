@@ -1062,10 +1062,12 @@ function LoginPage({onLogin, kit, onChangeKit}){
                 {[
                   { e: "admin@demo.com", label: "👨‍💼 Admin" },
                   { e: "ahmet@demo.com", label: "👨‍🏫 Eğitmen Ahmet" },
-                  { e: "ali@demo.com", label: "🎓 Ali (5/10 ilerleme)" },
-                  { e: "ayse@demo.com", label: "🎓 Ayşe (8/10, onay bekliyor)" },
-                  { e: "deniz@demo.com", label: "🏆 Deniz (10/10 şampiyon)" },
-                  { e: "veli1@demo.com", label: "👨‍👩‍👧 Veli — Murat" },
+                  { e: "ali@demo.com", label: "🎓 Öğrenci — Ali" },
+                  { e: "ayse@demo.com", label: "🎓 Öğrenci — Ayşe" },
+                  { e: "can@demo.com", label: "🎓 Öğrenci — Can" },
+                  { e: "deniz@demo.com", label: "🎓 Öğrenci — Deniz" },
+                  { e: "veli1@demo.com", label: "👨‍👩‍👧 Veli — Murat (Ali'nin babası)" },
+                  { e: "veli2@demo.com", label: "👨‍👩‍👧 Veli — Selin (Ayşe'nin annesi)" },
                 ].map(acc => (
                   <button key={acc.e}
                     onClick={() => { setE(acc.e); setP("demo123"); }}
