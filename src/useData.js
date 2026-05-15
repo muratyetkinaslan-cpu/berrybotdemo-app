@@ -53,7 +53,7 @@ export function useData() {
   const [homeworks, setHomeworks] = useState([]);
   const [homeworkSubs, setHomeworkSubs] = useState([]);
   const [answerUnlocks, setAnswerUnlocks] = useState([]);
-  const [customTasks, setCustomTasks] = useState([]);
+  const [customTasks, setCustomTasks] = useState(null);  // null = loading, [] = loaded empty
   // Homework v2 — template + assignment system
   const [hwTemplates, setHwTemplates] = useState([]);
   const [hwAssignments, setHwAssignments] = useState([]);

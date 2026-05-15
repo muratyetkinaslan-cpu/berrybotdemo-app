@@ -796,18 +796,18 @@ export default function App() {
         {user.role===ROLES.ADMIN&&page==="audit"&&<AuditLog logs={logs} users={users}/>}
         {user.role===ROLES.ADMIN&&page==="taskedit"&&<AdminTaskEditor customTasks={customTasks} onSave={saveCustomTask} onDelete={removeCustomTask} onUpload={uploadMedia} onRefresh={refresh} categories={categories} addNewCategory={addNewCategory}/>}
         {user.role===ROLES.ADMIN&&page==="hwedit"&&<AdminHomeworkEditor hwTemplates={hwTemplates} onSave={saveHwTemplate} onDelete={removeHwTemplate} onUpload={uploadHwMedia} onRefresh={refresh} categories={categories} addNewCategory={addNewCategory}/>}
-        {user.role===ROLES.ADMIN&&page==="tasks"&&<TaskBrowser showAns={false}/>}
+        {user.role===ROLES.ADMIN&&page==="tasks"&&<TaskBrowser showAns={false} customTasks={customTasks}/>}
 
         {/* ──── INSTRUCTOR ──── */}
         {user.role===ROLES.INSTRUCTOR&&page==="dash"&&<InstructorDash user={user} users={users} prog={prog} onClearHelp={handleClearHelp} onSel={s=>{setSelS(s);setPage("sdi");}}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="sdi"&&selS&&<StudentDetail s={selS} prog={prog} users={users} answerUnlocks={answerUnlocks} onToggleUnlock={toggleAnswerUnlock} canReview onApprove={handleApprove} onReject={handleReject} onBack={()=>nav("dash")}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="pend"&&<PendingReviews user={user} users={users} prog={prog} onApprove={handleApprove} onReject={handleReject}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="show"&&<DailyShow users={users} prog={prog} logs={logs} onSel={s=>{setSelS(s);setPage("sdi");}}/>}
-        {user.role===ROLES.INSTRUCTOR&&page==="tasks"&&<TaskBrowser showAns/>}
+        {user.role===ROLES.INSTRUCTOR&&page==="tasks"&&<TaskBrowser showAns customTasks={customTasks}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="hw"&&<InstructorHomeworkV2 user={user} users={users} hwTemplates={hwTemplates} hwAssignments={hwAssignments} onAssign={assignHw} onReview={reviewHwV2} onUnlockAnswer={unlockHwAnswerKey} onRefresh={refresh}/>}
 
         {/* ──── STUDENT ──── */}
-        {user.role===ROLES.STUDENT&&page==="dash"&&!selT&&<MissionBoard user={user} prog={prog} onSel={setSelT} onHelp={()=>handleHelp(user.id)} customTasks={customTasks} activeKit={activeKit}/>}
+        {user.role===ROLES.STUDENT&&page==="dash"&&!selT&&<MissionBoard user={user} prog={prog} onSel={setSelT} onHelp={()=>handleHelp(user.id)} customTasks={customTasks} activeKit={activeKit} tasksLoading={customTasks === null}/>}
         {user.role===ROLES.STUDENT&&page==="dash"&&selT&&<StudentTaskView user={user} task={selT} prog={prog} answerUnlocks={answerUnlocks} onStart={()=>handleStartTask(user.id,selT.id)} onSubmit={p=>handleSubmitTask(user.id,selT.id,p)} onResub={()=>handleResubmit(user.id,selT.id)} onHelp={()=>handleHelp(user.id)} onBack={()=>setSelT(null)}/>}
         {user.role===ROLES.STUDENT&&page==="practice"&&<PracticeView user={user} practiceProg={practiceProg} onAnswer={recordPractice}/>}
         {user.role===ROLES.STUDENT&&page==="hw"&&<StudentHomeworkV2 user={user} hwTemplates={hwTemplates} hwAssignments={hwAssignments} onSubmit={submitHwV2} onUploadMedia={uploadHwMedia}/>}
@@ -1435,7 +1435,7 @@ function AdminClassroom({users,prog,classLayout,saveLayout,onClearHelp,onSel}){
 //  STUDENT: MISSION BOARD (GAME STYLE)
 // ═══════════════════════════════════════
 // ═══════════════════════════════════════
-function MissionBoard({user,prog,onSel,onHelp,customTasks,activeKit}){
+function MissionBoard({user,prog,onSel,onHelp,customTasks,activeKit,tasksLoading}){
   // Use activeKit if provided (multi-kit support), else fall back to user.kit
   const userKit = activeKit || user.kit || "berrybot";
 
@@ -1491,6 +1491,31 @@ function MissionBoard({user,prog,onSel,onHelp,customTasks,activeKit}){
   const cnt=kitTasks.filter(t=>sp[t.id]?.status===TS.APPROVED).length;
   const lvProgress=nlv?((xp-lv.min)/(nlv.min-lv.min))*100:100;
   const hasHelp=prog[user.id]?.helpRequest;
+
+  // LOADING STATE — görevler henüz yüklenmediyse
+  if (tasksLoading || (!customTasks)) {
+    return (
+      <div style={{padding:"80px 20px",textAlign:"center",maxWidth:500,margin:"0 auto"}}>
+        <div style={{fontSize:80,marginBottom:24,opacity:0.7,animation:"loadingPulse 1.5s ease-in-out infinite"}}>
+          {KITS[userKit]?.icon || "🤖"}
+        </div>
+        <div style={{fontSize:18,color:T.tp,fontWeight:800,marginBottom:8}}>Görevler yükleniyor...</div>
+        <div style={{fontSize:13,color:T.tm,marginBottom:20}}>Sabırlı ol, harika işler yaklaşıyor 🚀</div>
+        <div style={{height:6,background:T.card,borderRadius:3,overflow:"hidden",position:"relative"}}>
+          <div style={{
+            position:"absolute",height:"100%",width:"40%",
+            background:`linear-gradient(90deg,${KITS[userKit]?.primaryColor || T.purple},${KITS[userKit]?.accentColor || T.orange})`,
+            borderRadius:3,
+            animation:"loadingBar 1.5s ease-in-out infinite",
+          }}/>
+        </div>
+        <style>{`
+          @keyframes loadingPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+          @keyframes loadingBar { 0% { left: -40%; } 100% { left: 100%; } }
+        `}</style>
+      </div>
+    );
+  }
 
   // Empty state for Tank/PicoBricks when admin hasn't added tasks yet
   if (kitTasks.length === 0) {
@@ -3380,23 +3405,40 @@ function PendingReviews({user,users,prog,onApprove,onReject}){
 // ═══════════════════════════════════════
 //  TASK BROWSER (with answer images for instructors)
 // ═══════════════════════════════════════
-function TaskBrowser({showAns}){
-  const cats=[...new Set(TASKS.map(t=>t.cat))];
+function TaskBrowser({showAns, customTasks}){
+  // DEMO ve diğer modlarda DB'deki gerçek görevleri kullan
+  const fromDb = (t) => ({
+    id: t.task_id, title: t.title || "Görev", cat: t.category || "Genel",
+    diff: t.difficulty || 1, xp: t.xp || 10, img: t.emoji || "📋",
+    desc: t.description || "", answer: t.answer || "",
+    image_url: t.image_url || "", answer_image_url: t.answer_image_url || "",
+  });
+  const dbBerryBot = (customTasks || []).filter(t => (t.kit || "berrybot") === "berrybot").map(fromDb).sort((a,b)=>a.id-b.id);
+  // DEMO: sadece DB. Production: DB yoksa TASKS array fallback
+  const taskList = (DEMO_MODE || dbBerryBot.length > 0) ? dbBerryBot : TASKS;
+  const cats = [...new Set(taskList.map(t => t.cat))];
   return(<div>
-    <h1 style={{fontSize:22,fontWeight:800,color:T.orange,margin:"0 0 6px"}}>Görevler (36)</h1>
+    <h1 style={{fontSize:22,fontWeight:800,color:T.orange,margin:"0 0 6px"}}>Görevler ({taskList.length})</h1>
     {showAns&&<div style={{fontSize:14,color:T.pl,marginBottom:16}}><I.Key/> Cevap anahtarları + görseller görünür</div>}
-    {cats.map(cat=>(<div key={cat} style={{marginBottom:16}}>
+    {taskList.length === 0 ? (
+      <Card><div style={{padding:30,textAlign:"center",color:T.tm}}>Henüz görev yok</div></Card>
+    ) : cats.map(cat=>(<div key={cat} style={{marginBottom:16}}>
       <span style={{fontSize:15,fontWeight:700,color:T.ts,padding:"4px 10px",background:T.purple+"20",borderRadius:6,display:"inline-block",marginBottom:8}}>{cat}</span>
-      <Card>{TASKS.filter(t=>t.cat===cat).map(t=>(<div key={t.id} style={{padding:10,borderRadius:8,marginBottom:6,background:T.dark}}>
+      <Card>{taskList.filter(t=>t.cat===cat).map(t=>(<div key={t.id} style={{padding:10,borderRadius:8,marginBottom:6,background:T.dark}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <TaskImage taskId={t.id} type="gorsel" size={44} fallbackEmoji={t.img} style={{borderRadius:8}}/>
+          {t.image_url ? (
+            <img src={t.image_url} alt={t.title} style={{width:44,height:44,objectFit:"cover",borderRadius:8}}
+              onError={(e)=>{e.target.style.display="none";}} />
+          ) : (
+            <div style={{width:44,height:44,borderRadius:8,background:T.purple+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{t.img}</div>
+          )}
           <div style={{flex:1}}><div style={{fontSize:15,fontWeight:600}}>#{t.id} {t.title}</div><div style={{fontSize:13,color:T.tm}}>{t.desc}</div></div>
           <span style={{fontSize:13,color:T.warn,fontWeight:600}}>+{t.xp}</span><Stars n={t.diff}/>
         </div>
-        {showAns&&<details style={{marginTop:6,marginLeft:54}}>
+        {showAns&&(t.answer||t.answer_image_url)&&<details style={{marginTop:6,marginLeft:54}}>
           <summary style={{fontSize:14,color:T.pl,cursor:"pointer"}}><I.Key/> Cevap</summary>
-          <pre style={{fontSize:13,marginTop:4,padding:10,borderRadius:8,background:T.purple+"15",color:T.pl,fontFamily:"monospace",whiteSpace:"pre-wrap"}}>{t.answer}</pre>
-          <AnswerImage taskId={t.id}/>
+          {t.answer && <pre style={{fontSize:13,marginTop:4,padding:10,borderRadius:8,background:T.purple+"15",color:T.pl,fontFamily:"monospace",whiteSpace:"pre-wrap"}}>{t.answer}</pre>}
+          {t.answer_image_url && <img src={t.answer_image_url} alt="cevap" style={{maxWidth:"100%",maxHeight:300,borderRadius:8,marginTop:6}} />}
         </details>}
       </div>))}</Card>
     </div>))}
@@ -3497,8 +3539,8 @@ function UserManager({users,prog,onAddUser,onSetProgress,onRefresh}){
         </select>}
         {role==="student"&&<select value={kit} onChange={e=>setKit(e.target.value)} style={{padding:"10px 14px",borderRadius:8,border:`2px solid ${KITS[kit]?.primaryColor||T.border}`,background:T.input,color:T.tp,fontSize:14,outline:"none",fontWeight:700,gridColumn:"span 2"}}>
           <option value="berrybot">🍓 BerryBot</option>
-          <option value="tank">🪖 Tank Robot</option>
-          <option value="picobricks">🧱 PicoBricks</option>
+          <option value="tank" disabled={DEMO_MODE}>🪖 Tank Robot{DEMO_MODE ? " (Demo'da kapalı)" : ""}</option>
+          <option value="picobricks" disabled={DEMO_MODE}>🧱 PicoBricks{DEMO_MODE ? " (Demo'da kapalı)" : ""}</option>
         </select>}
         {role==="parent"&&<select value={childId} onChange={e=>setChildId(e.target.value)} style={{padding:"10px 14px",borderRadius:8,border:`1px solid ${T.border}`,background:T.input,color:T.tp,fontSize:14,outline:"none",gridColumn:"span 2"}}>
           <option value="">Çocuk seç...</option>
@@ -6186,8 +6228,8 @@ function AdminTaskEditor({ customTasks, onSave, onDelete, onUpload, onRefresh, c
               style={{ ...inputStyle, fontWeight: 700, fontSize: 16, color: KITS[editing.kit]?.primaryColor || T.tp, borderColor: KITS[editing.kit]?.primaryColor || T.border }}
             >
               <option value="berrybot">🍓 BerryBot</option>
-              <option value="tank">🪖 Tank Robot</option>
-              <option value="picobricks">🧱 PicoBricks</option>
+              <option value="tank" disabled={DEMO_MODE}>🪖 Tank Robot{DEMO_MODE ? " (Demo'da kapalı)" : ""}</option>
+              <option value="picobricks" disabled={DEMO_MODE}>🧱 PicoBricks{DEMO_MODE ? " (Demo'da kapalı)" : ""}</option>
             </select>
           </div>
           {/* Basic info */}
@@ -6544,8 +6586,8 @@ function AdminHomeworkEditor({ hwTemplates, onSave, onDelete, onUpload, onRefres
               <select value={editing.kit} onChange={e => setEditing({ ...editing, kit: e.target.value })}
                 style={{ ...inputStyle, fontWeight: 700, fontSize: 16 }}>
                 <option value="berrybot">🍓 BerryBot</option>
-                <option value="tank">🪖 Tank Robot</option>
-                <option value="picobricks">🧱 PicoBricks</option>
+                <option value="tank" disabled={DEMO_MODE}>🪖 Tank Robot{DEMO_MODE ? " (Demo'da kapalı)" : ""}</option>
+                <option value="picobricks" disabled={DEMO_MODE}>🧱 PicoBricks{DEMO_MODE ? " (Demo'da kapalı)" : ""}</option>
               </select>
             </div>
 

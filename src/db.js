@@ -224,13 +224,13 @@ export async function setCurrentPage(studentId, page, taskId) {
 export async function addLog({ type, userId, targetUser, taskId, detail }) {
   await supabase.from('bb_logs').insert({
     type, user_id: userId || null, target_user: targetUser || null,
-    task_id: taskId || null, detail: detail || '', ts: Date.now(),
+    task_id: taskId || null, detail: detail || '', created_at: Date.now(),
   }).then(({ error }) => { if (error) console.warn('log:', error.message); });
 }
 
 export async function getLogs(limit = 100) {
-  const { data } = await supabase.from('bb_logs').select('*').order('ts', { ascending: false }).limit(limit);
-  return (data || []).map(l => ({ id: l.id, type: l.type, userId: l.user_id, targetUser: l.target_user, taskId: l.task_id, detail: l.detail, ts: l.ts }));
+  const { data } = await supabase.from('bb_logs').select('*').order('created_at', { ascending: false }).limit(limit);
+  return (data || []).map(l => ({ id: l.id, type: l.type, userId: l.user_id, targetUser: l.target_user, taskId: l.task_id, detail: l.detail, ts: l.created_at }));
 }
 
 // ═══ LAYOUTS ═══
