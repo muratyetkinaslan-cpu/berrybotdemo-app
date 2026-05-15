@@ -942,7 +942,7 @@ export default function App() {
         {user.role===ROLES.INSTRUCTOR&&page==="dash"&&<InstructorDash user={user} users={users} prog={prog} onClearHelp={handleClearHelp} onSel={s=>{setSelS(s);setPage("sdi");}}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="class"&&<AdminClassroom users={users} prog={prog} classLayout={classLayout} saveLayout={handleSaveLayout} onClearHelp={handleClearHelp} onSel={s=>{setSelS(s);setPage("sdi");}}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="sdi"&&selS&&<StudentDetail s={selS} prog={prog} users={users} answerUnlocks={answerUnlocks} onToggleUnlock={toggleAnswerUnlock} canReview onApprove={handleApprove} onReject={handleReject} onBack={()=>nav("dash")} customTasks={customTasks}/>}
-        {user.role===ROLES.INSTRUCTOR&&page==="pend"&&<PendingReviews user={user} users={users} prog={prog} onApprove={handleApprove} onReject={handleReject}/>}
+        {user.role===ROLES.INSTRUCTOR&&page==="pend"&&<PendingReviews user={user} users={users} prog={prog} onApprove={handleApprove} onReject={handleReject} customTasks={customTasks}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="show"&&<DailyShow users={users} prog={prog} logs={logs} onSel={s=>{setSelS(s);setPage("sdi");}}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="tasks"&&<TaskBrowser showAns customTasks={customTasks}/>}
         {user.role===ROLES.INSTRUCTOR&&page==="hw"&&<InstructorHomeworkV2 user={user} users={users} hwTemplates={hwTemplates} hwAssignments={hwAssignments} onAssign={assignHw} onReview={reviewHwV2} onUnlockAnswer={unlockHwAnswerKey} onRefresh={refresh}/>}
@@ -3517,10 +3517,28 @@ function StudentDetail({s,prog,users,canReview,answerUnlocks=[],onToggleUnlock,o
 // ═══════════════════════════════════════
 //  PENDING REVIEWS (with answer images)
 // ═══════════════════════════════════════
-function PendingReviews({user,users,prog,onApprove,onReject}){
+function PendingReviews({user,users,prog,onApprove,onReject,customTasks}){
   const[notes,setNotes]=useState({});const[zoomPhoto,setZoomPhoto]=useState(null);
   const my=users.filter(u=>u.role===ROLES.STUDENT);
-  const items=[];my.forEach(s=>TASKS.forEach(t=>{if(prog[s.id]?.[t.id]?.status===TS.PENDING)items.push({s,t,d:prog[s.id][t.id]});}));
+  
+  // DB'den dinamik görev listesi (DEMO_MODE ve production'da)
+  const fromDb = (t) => ({
+    id: t.task_id, title: t.title || "Görev", cat: t.category || "Genel",
+    diff: t.difficulty || 1, xp: t.xp || 10, img: t.emoji || "📋",
+    desc: t.description || "", answer: t.answer || "",
+    image_url: t.image_url || "", answer_image_url: t.answer_image_url || "",
+  });
+  
+  const items=[];
+  my.forEach(s=>{
+    const studentKit = s.kit || "berrybot";
+    const dbTasks = (customTasks || []).filter(t => (t.kit || "berrybot") === studentKit).map(fromDb).sort((a,b)=>a.id-b.id);
+    const taskList = (DEMO_MODE || dbTasks.length > 0) ? dbTasks : TASKS;
+    taskList.forEach(t=>{
+      if(prog[s.id]?.[t.id]?.status===TS.PENDING) items.push({s,t,d:prog[s.id][t.id]});
+    });
+  });
+  
   return(<div>
     <h1 style={{fontSize:22,fontWeight:800,color:T.orange,margin:"0 0 16px"}}>Onay Bekleyenler ({items.length})</h1>
 
@@ -3530,34 +3548,144 @@ function PendingReviews({user,users,prog,onApprove,onReject}){
     </div>}
 
     {items.length===0?<Card><div style={{textAlign:"center",padding:40,color:T.tm,fontSize:18}}>✓ Tüm görevler incelendi!</div></Card>:
-    items.map(({s,t,d})=>{const k=`${s.id}_${t.id}`;
+    items.map(({s,t,d})=>{
+      const k=`${s.id}_${t.id}`;
       const dur=(d.startedAt&&d.completedAt)?fd(d.completedAt-d.startedAt):null;
+      // Photo bir URL ise göster, yoksa fallback "öğrenci yükledi"
+      const hasPhotoUrl = d.photo && (d.photo.startsWith('http') || d.photo.startsWith('data:'));
+      const isUploading = d.photo === 'uploading';
+      
       return(
-      <Card key={k} style={{marginBottom:14,borderColor:T.purple+"44"}}>
-        <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
-          <TaskImage taskId={t.id} type="gorsel" size={60} fallbackEmoji={t.img}/>
-          <div style={{flex:1}}>
-            <div style={{marginBottom:4,fontSize:16}}><b>{s.name}</b> • Görev {t.id}: {t.title}</div>
-            <div style={{fontSize:13,color:T.tm,marginBottom:4}}>Bekleme: {fd(Date.now()-(d.completedAt||Date.now()))}</div>
-            {dur&&<div style={{fontSize:13,color:T.ok,marginBottom:6}}>⏱ Tamamlama süresi: {dur}</div>}
+      <Card key={k} style={{marginBottom:14,borderColor:T.purple+"44",padding:14}}>
+        <div style={{marginBottom:10,fontSize:16}}>
+          <b>{s.name}</b> • Görev #{t.id}: {t.title}
+          <div style={{fontSize:13,color:T.tm,marginTop:2}}>
+            Bekleme: {fd(Date.now()-(d.completedAt||Date.now()))}
+            {dur && <span style={{color:T.ok,marginLeft:10}}>• ⏱ Tamamlama: {dur}</span>}
+          </div>
+        </div>
 
-            {/* Student's photo is stored locally on their device */}
-            {d.photo&&<div style={{marginBottom:10,padding:"10px 14px",borderRadius:10,background:T.ok+"10",border:`1px solid ${T.ok}33`}}>
-              <div style={{fontSize:14,fontWeight:600,color:T.ok}}>📸 Öğrenci fotoğraf yükledi</div>
-              <div style={{fontSize:12,color:T.ts,marginTop:2}}>Fotoğraf öğrencinin cihazında. Kontrol etmek için öğrenciye gidin.</div>
-            </div>}
-
-            {/* Answer key */}
-            <details style={{marginBottom:8}}><summary style={{fontSize:13,color:T.pl,cursor:"pointer"}}><I.Key/> Cevap Anahtarı</summary><pre style={{fontSize:12,marginTop:4,padding:10,borderRadius:8,background:T.purple+"15",color:T.pl,fontFamily:"monospace",whiteSpace:"pre-wrap"}}>{t.answer}</pre>
-              <AnswerImage taskId={t.id}/>
-            </details>
-
-            <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <input value={notes[k]||""} onChange={e=>setNotes(p=>({...p,[k]:e.target.value}))} placeholder="Not yaz..." style={{flex:1,padding:"8px 12px",borderRadius:8,border:`1px solid ${T.border}`,background:T.input,color:T.tp,fontSize:14,outline:"none"}}/>
-              <button onClick={()=>{onApprove(s.id,t.id,notes[k]||"Onaylandı ✓");setNotes(p=>({...p,[k]:""}));}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"#1a4a2e",color:T.ok,cursor:"pointer",fontSize:14,fontWeight:700}}>✓ Onayla</button>
-              <button onClick={()=>{onReject(s.id,t.id,notes[k]||"Tekrar dene");setNotes(p=>({...p,[k]:""}));}} style={{padding:"8px 18px",borderRadius:8,border:"none",background:"#5c1a1a",color:T.err,cursor:"pointer",fontSize:14,fontWeight:700}}>✕ Reddet</button>
+        {/* ═══ YAN YANA KARŞILAŞTIRMA: Öğrenci Fotosu | Cevap Anahtarı ═══ */}
+        <div style={{
+          display:"grid",
+          gridTemplateColumns:"1fr 1fr",
+          gap:10,
+          marginBottom:12,
+        }} className="resp-grid-2">
+          {/* SOL: Öğrenci fotosu */}
+          <div style={{padding:8,borderRadius:10,background:T.ok+"10",border:`2px solid ${T.ok}55`}}>
+            <div style={{fontSize:12,fontWeight:800,color:T.ok,marginBottom:6,letterSpacing:1,textAlign:"center"}}>
+              📸 ÖĞRENCİNİN CEVABI
+            </div>
+            {hasPhotoUrl ? (
+              <img 
+                src={d.photo} 
+                onClick={()=>setZoomPhoto(d.photo)}
+                style={{
+                  width:"100%",
+                  height:240,
+                  objectFit:"contain",
+                  borderRadius:8,
+                  cursor:"zoom-in",
+                  background:T.dark,
+                }}
+                onError={(e)=>{
+                  e.target.style.display='none';
+                  e.target.nextSibling.style.display='flex';
+                }}
+              />
+            ) : null}
+            <div style={{
+              display: hasPhotoUrl ? "none" : "flex",
+              height:240,
+              flexDirection:"column",
+              alignItems:"center",
+              justifyContent:"center",
+              borderRadius:8,
+              background:T.dark,
+              color:T.tm,
+              fontSize:13,
+              textAlign:"center",
+              padding:10,
+            }}>
+              {isUploading ? (
+                <>
+                  <div style={{fontSize:36,marginBottom:8}}>⏳</div>
+                  <div>Foto yükleniyor...</div>
+                </>
+              ) : d.photo ? (
+                <>
+                  <div style={{fontSize:36,marginBottom:8}}>📷</div>
+                  <div>Öğrenci foto yükledi</div>
+                  <div style={{fontSize:11,marginTop:4,color:T.tm}}>(eski kayıt, lokal cihazda)</div>
+                </>
+              ) : (
+                <>
+                  <div style={{fontSize:36,marginBottom:8,opacity:0.3}}>📷</div>
+                  <div style={{opacity:0.5}}>Foto yok</div>
+                  <div style={{fontSize:11,marginTop:4}}>Öğrenci foto yüklemeden gönderdi</div>
+                </>
+              )}
             </div>
           </div>
+
+          {/* SAĞ: Cevap anahtarı */}
+          <div style={{padding:8,borderRadius:10,background:T.pl+"10",border:`2px solid ${T.pl}55`}}>
+            <div style={{fontSize:12,fontWeight:800,color:T.pl,marginBottom:6,letterSpacing:1,textAlign:"center"}}>
+              🗝️ CEVAP ANAHTARI
+            </div>
+            {t.answer_image_url ? (
+              <img 
+                src={t.answer_image_url}
+                onClick={()=>setZoomPhoto(t.answer_image_url)}
+                style={{
+                  width:"100%",
+                  height:240,
+                  objectFit:"contain",
+                  borderRadius:8,
+                  cursor:"zoom-in",
+                  background:T.dark,
+                }}
+                onError={(e)=>{e.target.style.display='none';}}
+              />
+            ) : (
+              <div style={{
+                height:240,
+                display:"flex",
+                flexDirection:"column",
+                alignItems:"center",
+                justifyContent:"center",
+                borderRadius:8,
+                background:T.dark,
+                color:T.tm,
+                fontSize:13,
+              }}>
+                <div style={{fontSize:36,marginBottom:8,opacity:0.3}}>🗝️</div>
+                <div style={{opacity:0.5}}>Cevap anahtarı yok</div>
+              </div>
+            )}
+            {t.answer && (
+              <pre style={{
+                fontSize:11,
+                marginTop:6,
+                padding:8,
+                borderRadius:6,
+                background:T.purple+"15",
+                color:T.pl,
+                fontFamily:"monospace",
+                whiteSpace:"pre-wrap",
+                maxHeight:120,
+                overflow:"auto",
+              }}>{t.answer}</pre>
+            )}
+          </div>
+        </div>
+
+        {/* Onay / Red butonları */}
+        <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+          <input value={notes[k]||""} onChange={e=>setNotes(p=>({...p,[k]:e.target.value}))} placeholder="Not yaz (opsiyonel)..." style={{flex:1,minWidth:200,padding:"10px 14px",borderRadius:10,border:`1px solid ${T.border}`,background:T.input,color:T.tp,fontSize:14,outline:"none"}}/>
+          <button onClick={()=>{onApprove(s.id,t.id,notes[k]||"Onaylandı ✓");setNotes(p=>({...p,[k]:""}));}} style={{padding:"10px 22px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.ok},#1a7a3a)`,color:"#fff",cursor:"pointer",fontSize:14,fontWeight:800,boxShadow:`0 3px 10px ${T.ok}44`}}>✓ Onayla</button>
+          <button onClick={()=>{onReject(s.id,t.id,notes[k]||"Tekrar dene");setNotes(p=>({...p,[k]:""}));}} style={{padding:"10px 22px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${T.err},#7a1a1a)`,color:"#fff",cursor:"pointer",fontSize:14,fontWeight:800,boxShadow:`0 3px 10px ${T.err}44`}}>✕ Reddet</button>
         </div>
       </Card>);
     })}
@@ -4772,7 +4900,7 @@ function ParentLearningsView({child,sp,childTasks}){
       bg:`linear-gradient(135deg,${T.warn}22,${T.card})`,
       border:T.warn,
       keywords:["motor","tekerlek","servo","mekanik","montaj","yapı","robot","araç","gövde","hareket","yön","döner","sürüş","matkap","metrik","havya","tornavida","vida","cıvata","somun","lehim","kablo","akım","voltaj"],
-      tasks:["Motor","Mesafe/Navigasyon","Sumo Robot","Engel Algılama","Montaj"],
+      tasks:["Motor","Mesafe/Navigasyon","Sumo Robot","Engel Algılama","Montaj","Mesafe Sensörü"],
       desc:"Robotun fiziksel parçalarını monte etti, matkap-tornavida-metrik-havya gibi donanım aletlerini öğrendi",
       tools:["🔩 Matkap & Uçlar","🛠️ Tornavida Seti (Metrik/İmperyal)","⚡ Havya & Lehim Teli","🔧 Cırcırlı Anahtar","📏 Kumpas & Cetvel","🧰 Pense & Kerpeten"],
     },
@@ -4780,17 +4908,20 @@ function ParentLearningsView({child,sp,childTasks}){
       color:T.cyan,
       bg:`linear-gradient(135deg,${T.cyan}22,${T.card})`,
       border:T.cyan,
-      keywords:["fonksiyon","döngü","koşul","kod","program","algoritma","blok","mantık","değişken","if","while","for","komut"],
-      tasks:["Fonksiyon","Çizgi Takip","Sumo Robot","Işık Takip"],
-      desc:"Robotunu kontrol etmek için kod yazmayı öğrendi",
+      keywords:["fonksiyon","döngü","koşul","kod","program","algoritma","blok","mantık","değişken","if","while","for","komut","forever","interval","milisaniye","saniye","wait","repeat","tekrar","serial"],
+      // Her görev kod gerektirir — TÜM kategorileri kapsayalım
+      tasks:["RGB LED","Motor","Buzzer","Sensör+LED+Buzzer","IR Kumanda","Engel Algılama","Sumo Robot","Fonksiyon","Çizgi Takip","Işık Takip","Mesafe Sensörü"],
+      desc:"Robotunu kontrol etmek için blok kod yazdı, algoritma kurguladı, koşullar ve döngülerle çalıştı",
+      tools:["🧩 MakeCode Blokları","⚙️ Forever Döngüsü","🔀 IF / ELSE Koşulları","🔁 Repeat & Wait","📤 Serial Komutları","📐 Algoritma Tasarımı"],
     },
     "⚡ Elektronik & Sensörler":{
       color:T.pl,
       bg:`linear-gradient(135deg,${T.purple}22,${T.card})`,
       border:T.pl,
-      keywords:["sensör","led","buzzer","kızılötesi","ışık","mesafe","ultrasonik","ldr","ir","rgb","pin","analog","dijital","sinyal","devre","elektrik"],
-      tasks:["RGB LED","Sensör+LED+Buzzer","Işık Sensörü","IR Kumanda","Işık Takip"],
-      desc:"Sensörler ve elektronik bileşenlerle nasıl çalışılacağını öğrendi",
+      keywords:["sensör","led","buzzer","kızılötesi","ışık","mesafe","ultrasonik","ldr","ir","rgb","pin","analog","dijital","sinyal","devre","elektrik","ses","frekans"],
+      tasks:["RGB LED","Sensör+LED+Buzzer","Işık Sensörü","IR Kumanda","Işık Takip","Buzzer","Mesafe Sensörü"],
+      desc:"Sensörler, LED'ler ve elektronik bileşenlerle nasıl çalışılacağını öğrendi",
+      tools:["💡 RGB LED Devresi","🔊 Buzzer & Frekans","📡 IR Alıcı","📏 Ultrasonik Sensör","🔵 LDR Işık Sensörü","⚪ Çizgi Sensörü"],
     },
   };
 
@@ -4802,10 +4933,29 @@ function ParentLearningsView({child,sp,childTasks}){
       const lower=lr.toLowerCase();
       return catDef.keywords.some(kw=>lower.includes(kw));
     });
+    
+    // Yazılım kategorisi için: ANY task tamamlandıysa, default kazanımlar ekle
+    let finalLearnings = [...new Set(matchingLearnings)];
+    if (catName === "💻 Yazılım & Algoritma" && matchingTasks.length > 0) {
+      const defaultSwLearnings = [
+        "Blok tabanlı programlama yapısını öğrendi",
+        "Algoritma kurgusu ve sıralı işlemler kavradı",
+        "Forever (sonsuz döngü) yapısını kullandı",
+        "Koşullu yapılar (if/else) ile karar verme öğrendi",
+        "Zamanlama bloklarıyla (wait, interval) sıralama yaptı",
+      ];
+      // Eksik olan default kazanımları ekle
+      defaultSwLearnings.forEach(d => {
+        if (!finalLearnings.some(l => l.toLowerCase().includes(d.toLowerCase().substring(0, 15)))) {
+          finalLearnings.push(d);
+        }
+      });
+    }
+    
     categorized[catName]={
       ...catDef,
       tasks:matchingTasks,
-      learnings:[...new Set(matchingLearnings)],
+      learnings:finalLearnings,
       taskCount:matchingTasks.length,
       xpEarned:matchingTasks.reduce((a,t)=>a+t.xp,0),
     };

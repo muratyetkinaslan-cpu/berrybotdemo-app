@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = "https://asoahxgzosbtwvdifmrq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_oEn7NWdc-Qdbd6vEoQ6Xwg_-bqznLbU"
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // ═══ USERS ═══
 export async function loginUser(email, password) {
   const { data, error } = await supabase.from('bb_users').select('*').eq('email', email).eq('password', password).single();
@@ -136,13 +137,30 @@ export async function startTask(studentId, taskId) {
   return ok;
 }
 
-export async function submitTask(studentId, taskId, hasPhoto) {
-  console.log('📤 submitTask:', { studentId, taskId, hasPhoto });
-  const ok = await updateStatus(studentId, taskId, { status: 'pending_review', completed_at: Date.now(), photo: hasPhoto ? 'local' : null });
+export async function submitTask(studentId, taskId, photoUrl) {
+  console.log('📤 submitTask:', { studentId, taskId, photoUrl });
+  const ok = await updateStatus(studentId, taskId, { 
+    status: 'pending_review', 
+    completed_at: Date.now(), 
+    photo: photoUrl || null,  // ★ Artık gerçek URL veya null
+  });
   console.log('📤 submitTask result:', ok);
   if (!ok) return false;
-  addLog({ type: 'task_completed', userId: studentId, taskId, detail: 'Fotoğraf yüklendi, onaya gönderildi' });
+  addLog({ type: 'task_completed', userId: studentId, taskId, detail: photoUrl ? 'Fotoğraf yüklendi, onaya gönderildi' : 'Onaya gönderildi' });
   return true;
+}
+
+// Storage'a foto yükle ve public URL döndür
+export async function uploadProgressPhoto(path, blob) {
+  const { error } = await supabase.storage
+    .from('task-media')
+    .upload(path, blob, { upsert: true, cacheControl: '3600', contentType: 'image/jpeg' });
+  if (error) {
+    console.error('uploadProgressPhoto:', error);
+    return null;
+  }
+  const { data } = supabase.storage.from('task-media').getPublicUrl(path);
+  return data?.publicUrl || null;
 }
 
 export async function approveTask(instructorId, studentId, taskId, note) {
