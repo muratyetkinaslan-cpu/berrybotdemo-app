@@ -4,6 +4,7 @@ import * as db from "./db";
 import BerryBot3D from "./BerryBot3D";
 import TankRobot3D from "./TankRobot3D";
 import PicoBricks3D from "./PicoBricks3D";
+import Robot3DPreview from "./Robot3DPreview";
 
 // ═══════════════════════════════════════════════════════════
 //  BerryBot LMS — Production (Supabase)
@@ -19,6 +20,14 @@ const TS = { LOCKED:"locked", ACTIVE:"active", IN_PROGRESS:"in_progress", PENDIN
 // ═══════════════════════════════════════════════════════════════
 // KIT SYSTEM — Multi-robot kit support
 // ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+// 🎬 DEMO MODE — Robotistan sunumu için
+// ═══════════════════════════════════════════════════════════════
+// true ise: sadece BerryBot kit aktif, kit selektörü atlanır, login'de demo hesaplar gösterilir
+// false ise: tam sistem (3 kit, tam akış)
+const DEMO_MODE = true;
+
 const KITS = {
   berrybot: {
     id: "berrybot",
@@ -548,7 +557,7 @@ export default function App() {
   // Update browser tab title and favicon based on active kit
   useEffect(() => {
     const kitName = KITS[activeKit]?.name || "BerryBot";
-    document.title = `${kitName} LMS`;
+    document.title = `${kitName} LMS${DEMO_MODE ? " — DEMO" : ""}`;
     // Update favicon dynamically
     const link = document.querySelector("link[rel='icon']") || document.createElement('link');
     link.rel = 'icon';
@@ -617,9 +626,19 @@ export default function App() {
           0% { left: -40%; }
           100% { left: 100%; }
         }
+        @keyframes demoPulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
       `}</style>
     </div>
   );
+  // DEMO MODE — sadece BerryBot, kit selector atla
+  if (DEMO_MODE && !user && !selectedKit) {
+    try { localStorage.setItem("bb_selected_kit", "berrybot"); } catch {}
+    setSelectedKit("berrybot");
+    return null;  // bir sonraki render'da LoginPage gösterilecek
+  }
   if(!user&&!selectedKit)return<KitSelector onSelect={handleKitSelect}/>;
   if(!user)return<LoginPage onLogin={handleLogin} kit={KITS[selectedKit]||KITS.berrybot} onChangeKit={handleResetKit}/>;
 
@@ -707,6 +726,22 @@ export default function App() {
             onError={(e) => { e.currentTarget.src = "/logos/berrybot.png"; }}
             style={{height:54,width:"auto",maxWidth:200,objectFit:"contain",filter:`drop-shadow(0 2px 8px ${T.orange}66)`}}/>
           <span style={{fontSize:16,background:`linear-gradient(135deg,${T.purple},${T.pd})`,color:"#fff",padding:"6px 16px",borderRadius:10,fontWeight:900,letterSpacing:2,boxShadow:`0 3px 12px ${T.purple}77`,border:`2px solid ${T.pl}66`}}>LMS</span>
+          {DEMO_MODE && (
+            <span style={{
+              fontSize: 11,
+              background: "linear-gradient(135deg, #FF8800, #6B3FA0)",
+              color: "#fff",
+              padding: "5px 12px",
+              borderRadius: 8,
+              fontWeight: 800,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              animation: "demoPulse 2s ease-in-out infinite",
+            }}>
+              🎬 DEMO
+            </span>
+          )}
         </div>
         <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
           {user.role===ROLES.ADMIN&&<><NBtn a={page==="dash"} o={()=>nav("dash")}>Sınıf</NBtn><NBtn a={page==="users"} o={()=>nav("users")}>Kullanıcılar</NBtn><NBtn a={page==="taskedit"} o={()=>nav("taskedit")}>📝 Görev Editörü</NBtn><NBtn a={page==="hwedit"} o={()=>nav("hwedit")}>📋 Ödev Şablonları</NBtn><NBtn a={page==="audit"} o={()=>nav("audit")}>Audit</NBtn><NBtn a={page==="tasks"} o={()=>nav("tasks")}>Görevler</NBtn></>}
@@ -1009,6 +1044,55 @@ function LoginPage({onLogin, kit, onChangeKit}){
               40%, 80% { transform: translateX(4px); }
             }
           `}</style>
+
+          {/* DEMO HESAPLAR — sadece DEMO_MODE'da görünür */}
+          {DEMO_MODE && (
+            <div style={{
+              marginTop: 16,
+              padding: 14,
+              background: `${kitColor}10`,
+              border: `1px solid ${kitColor}44`,
+              borderRadius: 12,
+              fontSize: 12,
+            }}>
+              <div style={{ fontWeight: 800, color: kitColor, marginBottom: 10, letterSpacing: 1, fontSize: 11, textTransform: "uppercase" }}>
+                🎬 Demo Hesapları (tıkla)
+              </div>
+              <div style={{ display: "grid", gap: 4 }}>
+                {[
+                  { e: "admin@demo.com", label: "👨‍💼 Admin" },
+                  { e: "ahmet@demo.com", label: "👨‍🏫 Eğitmen Ahmet" },
+                  { e: "ali@demo.com", label: "🎓 Ali (5/10 ilerleme)" },
+                  { e: "ayse@demo.com", label: "🎓 Ayşe (8/10, onay bekliyor)" },
+                  { e: "deniz@demo.com", label: "🏆 Deniz (10/10 şampiyon)" },
+                  { e: "veli1@demo.com", label: "👨‍👩‍👧 Veli — Murat" },
+                ].map(acc => (
+                  <button key={acc.e}
+                    onClick={() => { setE(acc.e); setP("demo123"); }}
+                    style={{
+                      background: "transparent",
+                      border: `1px solid ${T.border}55`,
+                      borderRadius: 6,
+                      padding: "6px 10px",
+                      textAlign: "left",
+                      color: T.tp,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      transition: "all .15s",
+                    }}
+                    onMouseOver={e => { e.currentTarget.style.background = `${kitColor}22`; e.currentTarget.style.borderColor = kitColor; }}
+                    onMouseOut={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = `${T.border}55`; }}
+                  >
+                    {acc.label}
+                  </button>
+                ))}
+                <div style={{ marginTop: 6, paddingTop: 8, borderTop: `1px solid ${T.border}66`, fontSize: 11, color: T.tm, textAlign: "center" }}>
+                  🔑 Şifre: <strong style={{ color: kitColor }}>demo123</strong>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* SPONSOR LOGOS */}
